@@ -1,0 +1,5 @@
+
+*.scx
+*.zip
+
+build/

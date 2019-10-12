@@ -1,0 +1,49 @@
+TITLE:: VBSlide
+summary:: lowpass filter for envelope following
+categories:: UGens>Generators>Deterministic, UGens>Oscillators
+related:: Classes/Amplitude
+
+DESCRIPTION::
+A lowpass filter with adjustable attack and release coefs for envelope following
+
+CLASSMETHODS::
+private:: categories
+
+METHOD:: ar, kr
+
+ARGUMENT::in
+input signal
+
+ARGUMENT::slideup
+attack coef, from 1. (instant attack) to inv.
+
+ARGUMENT::slidedown
+release coef
+
+returns::
+An UGen.
+
+EXAMPLES::
+
+a plot:
+code:: 
+(
+{ 
+	var input = LFPulse.ar(10, 0, 0.2);
+	[input, VBSlide.ar(input, 100, 500)]
+}.plot(0.07); 
+)
+::
+
+more:
+code:: 
+(
+{
+	var input = LFNoise0.ar(3).range(0,1);
+	var filtered = VBSlide.ar(input, 500, 1500);
+	var outL = SinOsc.ar( filtered.range(30,80).midicps );
+	var outR = SinOsc.ar( input.range(30,80).midicps );
+	[outL, outR]*0.1;
+}.play
+) 
+::

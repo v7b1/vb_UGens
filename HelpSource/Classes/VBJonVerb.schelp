@@ -1,0 +1,55 @@
+TITLE:: VBJonVerb
+summary:: artifical reverberator
+categories:: UGens>Reverbs
+related:: Classes
+
+DESCRIPTION::
+an inexpensive artifical reverberator, designed after an article by Jon Dattorro (EffectDesignPart1.pdf)
+
+CLASSMETHODS::
+private:: categories
+
+METHOD:: ar
+
+ARGUMENT::in
+input signal
+
+ARGUMENT::decay
+rate for the reverb tail to decay
+
+ARGUMENT::damping
+rate for damping high frequency content
+
+ARGUMENT::inputbw
+input bandwidth
+
+ARGUMENT::erfl
+early reflection gain
+
+ARGUMENT::tail
+reverb tail gain
+
+returns::
+A stereo UGen.
+
+EXAMPLES::
+
+a plot:
+code::
+{Lores.ar(WhiteNoise.ar(0.5))}.play
+::
+
+more:
+code::
+(
+{
+	var in = WhiteNoise.ar(0.3);
+	var freq = LFNoise0.ar(4, 500, 600);
+	var res = 0.9;
+	var out = Lores.ar(in, freq, res);
+	out!2
+}.play
+)
+::
+
+

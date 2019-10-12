@@ -1,0 +1,76 @@
+TITLE:: VBPVoc
+summary:: a simple phase vocoder for time-stretching
+categories:: UGens>FFT
+related:: Classes/FFT
+
+DESCRIPTION::
+A simple phase vocoder for time-stetching of buffer audio data
+
+
+CLASSMETHODS::
+
+METHOD:: ar
+plays back phase-vocoder data
+
+ARGUMENT:: numChannels
+number of output channels
+
+ARGUMENT:: bufnum
+bufnum of buffer that holds the analysis data
+
+ARGUMENT:: playpos
+relative playback position (0. -- 1.)
+
+ARGUMENT:: mul
+(describe argument here)
+
+ARGUMENT:: add
+(describe argument here)
+
+returns::
+An UGen.
+
+METHOD:: createBuffer
+creates and returns an empty buffer with the approriate length and number of channels for the analysis data.
+
+ARGUMENT:: server
+the server
+
+ARGUMENT:: fftsize
+FFT size for the analysis
+
+ARGUMENT:: inputbuffer
+The buffer, that holds the time domain audio data to be analysed.
+
+returns::
+a buffer
+
+
+
+INSTANCEMETHODS::
+
+METHOD:: init
+(describe method here)
+
+ARGUMENT:: argNumChannels
+(describe argument here)
+
+ARGUMENT::  ... theInputs
+(describe argument here)
+
+returns:: (describe returnvalue here)
+
+
+EXAMPLES::
+
+code::
+// load a soundfile into a buffer and create a buffer that will hold the spectral data
+b = Buffer.loadDialog(s, action: {c = VBPVoc.createBuffer(s, 2048, b) });
+
+// do the pvoc analysis and store spectral data
+c.pvocAnal(b, 2048);
+
+// play the pvoc data
+x = {VBPVoc.ar(2, c.bufnum, MouseX.kr(0, 1, 0))}.play;
+x.free
+::

@@ -1,0 +1,46 @@
+TITLE:: Lores
+summary:: simple resonating lowpass filter
+categories:: UGens>Filters>linear
+related:: Classes/Filter
+
+DESCRIPTION::
+A resonating lowpass filter - like lores~ in MaxMSP
+
+CLASSMETHODS::
+private:: categories
+
+METHOD:: ar
+
+ARGUMENT::in
+input signal
+
+ARGUMENT::freq
+cutoff frequency in Hz
+
+ARGUMENT::res
+resonance, from 0 to 1
+
+returns::
+An UGen.
+
+EXAMPLES::
+
+a plot:
+code::
+{Lores.ar(WhiteNoise.ar(0.5))}.play
+::
+
+more:
+code::
+(
+{
+	var in = WhiteNoise.ar(0.3);
+	var freq = LFNoise0.ar(4, 500, 600);
+	var res = 0.9;
+	var out = Lores.ar(in, freq, res);
+	out!2
+}.play
+)
+::
+
+
