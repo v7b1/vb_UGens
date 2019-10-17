@@ -36,20 +36,25 @@ EXAMPLES::
 
 a plot:
 code::
-{Lores.ar(WhiteNoise.ar(0.5))}.play
+
+{ VBJonVerb.ar( Dust.ar(2), 0.7, 0.3) }.play
+
 ::
 
 more:
 code::
 (
 {
-	var in = WhiteNoise.ar(0.3);
-	var freq = LFNoise0.ar(4, 500, 600);
-	var res = 0.9;
-	var out = Lores.ar(in, freq, res);
-	out!2
+	var input = Resonz.ar(
+        Array.fill(3, { Dust.ar(0.25) }),
+        1000 * [1, 2.1, 2.9],
+        0.01
+    ).sum * 10;
+
+	VBJonVerb.ar( input, 0.8, erfl: 0.1, tail: 0.5) + input;
 }.play
 )
+
 ::
 
 
