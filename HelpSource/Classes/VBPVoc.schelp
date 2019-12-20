@@ -21,6 +21,9 @@ bufnum of buffer that holds the analysis data
 ARGUMENT:: playpos
 relative playback position (0. -- 1.)
 
+ARGUMENT:: fftsize
+FFT size for playback. Should be a power of 2 and match the one from the analysis.
+
 ARGUMENT:: mul
 (describe argument here)
 
@@ -37,7 +40,7 @@ ARGUMENT:: server
 the server
 
 ARGUMENT:: fftsize
-FFT size for the analysis
+FFT size for the analysis, should be a power of 2.
 
 ARGUMENT:: inputbuffer
 The buffer, that holds the time domain audio data to be analysed.
