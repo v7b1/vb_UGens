@@ -32,6 +32,7 @@ struct VBPVoc : public Unit {
 	float	*m_buffer, *m_fftbuf;
 	float	**m_lastphase, **m_outbuf;
 	scfft	*m_scfft;
+    uint8   m_numTracksToOutput;
 	
 	float	m_fbufnum;
 	SndBuf	*m_buf;
@@ -43,8 +44,8 @@ static void VBPVoc_Ctor(VBPVoc *unit);
 static void VBPVoc_Dtor(VBPVoc *unit);
 static void VBPVoc_next(VBPVoc *unit, int numSamples);
 inline float interpol(float a, float b, float frac );
-//void PVocAnalysis(World *world, struct SndBuf *analbuf, struct sc_msg_iter *msg);
 inline float phasewrap( float input );
+
 
 static void VBPVoc_Ctor(VBPVoc *unit) 
 {
@@ -52,7 +53,16 @@ static void VBPVoc_Ctor(VBPVoc *unit)
 	unit->m_buf = unit->mWorld->mSndBufs;
 	unit->m_pos = (int)IN0(1);
 	unit->m_idx = 0;
-	unit->m_fftsize = 2048;
+    
+    int fftsize = fabsf(IN0(2));
+    if (fftsize == 0) {
+        printf("fft size can't be zero!\n");
+        fftsize = 2048;
+    }
+    // make sure fftsize is a power of 2
+    int log2n = log2(fftsize) + 0.5;
+    unit->m_fftsize = 1 << log2n;
+
 	int overlap = 4;	//(int)IN0(3);  fixed to 4x
 	int numOutputs = unit->mNumOutputs;
 	
@@ -64,7 +74,7 @@ static void VBPVoc_Ctor(VBPVoc *unit)
 #if SC_FFT_FFTW
 	printf("using FFTW\n");
 #elif SC_FFT_VDSP 
-	printf("using VDSP\n");
+	printf("using vDSP\n");
 #elif SC_FFT_GREEN
 	printf("using FFTGreen...\n");
 #endif
@@ -83,33 +93,26 @@ static void VBPVoc_Ctor(VBPVoc *unit)
     
 	// how many pvoc tracks are in analysis file?
 	// pvoc file stores mag on first, phasdiff on second channel.
-    // so two real channels make one pvoc track
-	int tracksInFile = bufChannels>>1;		
-	if(tracksInFile>2 ) {
-		printf("sorry, only mono or stereo files allowed!\n");
-		tracksInFile = 2;
-	}
-	if(tracksInFile<1) {
-		printf("sorry, only mono or stereo files allowed!\n");
-		tracksInFile = 1;
-	}
-	
-	printf("number of pvoctracks in analysis files: %d\n", tracksInFile);
-	
-	// pvoc tracks in analysis file vs output channels of UGen
-	if(tracksInFile < numOutputs) {
-		printf("sorry, more outputs requested than tracks in file!\n");
-		SETCALC(*ClearUnitOutputs);
-		unit->mDone = true;
-		return;
-	}
+    // so two channels in file make one pvoc track
+	int pvocTracks = bufChannels>>1;
+    printf("pvoc tracks: %d\n", pvocTracks);
+    printf("num of outputs: %d\n", numOutputs);
+    
+    unit->m_numTracksToOutput = pvocTracks;
+    if( numOutputs > pvocTracks) {
+        printf("warning: more UGen outputs than pvocTracks in file!\n");
+    }
+    else if( pvocTracks > numOutputs) {
+        printf("warning: more pvocTracks in file than UGen outputs!\n");
+        unit->m_numTracksToOutput = numOutputs;
+    }
 
 	
 	// allocate memory
 	int size = unit->m_fftsize * sizeof(float);
 	unit->m_lastphase = (float**)RTAlloc(unit->mWorld, numOutputs*sizeof(float*));
 	unit->m_outbuf = (float**)RTAlloc(unit->mWorld, numOutputs*sizeof(float*));
-	for(int i=0; i<numOutputs; i++) {
+	for(int i=0; i<unit->m_numTracksToOutput; i++) {
 		unit->m_lastphase[i] = (float*)RTAlloc(unit->mWorld, size);
 		unit->m_outbuf[i] = (float*)RTAlloc(unit->mWorld, size);
 		
@@ -134,9 +137,9 @@ static void VBPVoc_Ctor(VBPVoc *unit)
 
 static void VBPVoc_Dtor(VBPVoc *unit) 
 {
-	printf("byebye\n");
+	printf("try to free %d tracks\n", unit->m_numTracksToOutput);
 	
-	for(int i=0; i<unit->mNumOutputs; ++i) {
+	for(int i=0; i<unit->m_numTracksToOutput; ++i) {
 		if(unit->m_lastphase[i])
 			RTFree(unit->mWorld, unit->m_lastphase[i]);
 		if(unit->m_outbuf[i])
@@ -166,12 +169,12 @@ static void VBPVoc_next(VBPVoc *unit, int numSamples)
 	float	*buffer = unit->m_buffer;
 	float	**lastphase = unit->m_lastphase;
 	float	mag, phas, phasDelta;
-	uint32	numOutputs = unit->mNumOutputs;
-	
+	uint8	numOutputs = unit->mNumOutputs;
+    uint8   numTracksToOutput = unit->m_numTracksToOutput;
+    uint8   numSilentOutputs = unit->mNumOutputs - numTracksToOutput;
 	
 	if (idx & hopsize) {
 
-        
 		idx = 0;
 		
 		GET_BUF
@@ -179,15 +182,15 @@ static void VBPVoc_next(VBPVoc *unit, int numSamples)
 			ClearUnitOutputs(unit, numSamples);
 			return;
 		}
-		
+        
 		float framepos = pos * ((bufFrames/fftsize2)-1);
 		int readpos = (int)framepos;		
 		float frac = framepos - readpos;
 		readpos *= fftsize2;
 		
-        printf("pos: %f -- framepos: %f -- readpos: %d -- bufFrames: %u\n", pos, framepos, readpos, bufFrames);
+        //printf("pos: %f -- framepos: %f -- readpos: %d -- bufFrames: %u\n", pos, framepos, readpos, bufFrames);
        
-		 if( readpos >= (bufFrames-fftsize2)) {
+		 if( readpos >= (bufFrames - fftsize2)) {
              printf("oops!\n");
 			 ClearUnitOutputs(unit, numSamples);
 			 return;
@@ -198,7 +201,7 @@ static void VBPVoc_next(VBPVoc *unit, int numSamples)
 
 		// loop over number of output channels
 
-		for(int k=0; k<numOutputs; k++) {
+		for(int k=0; k<numTracksToOutput; k++) {
 			int offset = (k<<1) + readpos;
 			
             
@@ -254,9 +257,13 @@ static void VBPVoc_next(VBPVoc *unit, int numSamples)
 		}
 	}
 	
-	for(int k=0; k<numOutputs; k++)
+	for(int k=0; k<numTracksToOutput; k++)
 		memcpy(OUT(k), outbuf[k]+idx, numSamples*sizeof(float));
-
+    
+    // if we demanded more UGen outputs than pvoc tracks in file,
+    // make sure, that the rest of the outputs are zeroed out
+    for(int k=0; k<numSilentOutputs; k++)
+        memset(OUT(k+numTracksToOutput), 0, numSamples*sizeof(float));
 	
 	idx += numSamples;
 	unit->m_idx = idx;
@@ -419,9 +426,10 @@ void PVocAnalysis(World *world, struct SndBuf *analbuf, struct sc_msg_iter *msg)
 			else {
                 // k is track to write,
                 // *2 because mag and phasdiffs go to different channels
-				int offset = writepos*(nchnls<<1)+(k<<1);
+                int offset = writepos*(nchnls<<1)+(k<<1);       // TODO: check this for multichannel!!!
 				for(int j=0; j<n2; j++) {
-					int index = offset+(j<<nchnls);
+					//int index = offset+(j<<nchnls);
+                    int index = offset+(j*nchnls*2);
 					memcpy(pvocdata+index, spectrum+(j<<1), 2*sizeof(float));
 				}
 			}
@@ -448,12 +456,11 @@ void PVocAnalysis(World *world, struct SndBuf *analbuf, struct sc_msg_iter *msg)
 		scfft_destroy(m_scfft, alloc);
 #endif
 	
-	printf("i'm done!\n");
+	printf("---> i'm done!\n");
 	
 }
 
 
-#include "fftw3.h"
 #define MAXFFTSIZE        2097152        // about 47.5 seconds @ sr: 44.1 kHz
 #define RAND_SCALE    1.0/RAND_MAX
 
@@ -461,6 +468,12 @@ float getRand() {
     float out = ((float)rand() * RAND_SCALE)*2-1;
     return out;
 }
+
+
+#ifdef SC_FFT_FFTW
+#include "fftw3.h"
+#endif
+
 
 void BufferFreeze(World *world, struct SndBuf *inputbuf, struct sc_msg_iter *msg)
 {
@@ -473,10 +486,11 @@ void BufferFreeze(World *world, struct SndBuf *inputbuf, struct sc_msg_iter *msg
     int        nchnls = inputbuf->channels;
     
     if(n>MAXFFTSIZE) {
-        printf("sorry, buffer to large!\n");
+        printf("sorry, buffer too large!\n");
         return;
     }
     
+#ifdef SC_FFT_FFTW
     
     // allocate memory
     float *in = (float *) fftwf_malloc(sizeof(float) * n);
@@ -532,6 +546,9 @@ void BufferFreeze(World *world, struct SndBuf *inputbuf, struct sc_msg_iter *msg
     fftwf_free(spec);
     fftwf_destroy_plan(pIN);
     fftwf_destroy_plan(pOUT);
+#else
+    printf("sorry, buffer freezing is only available with FFTW");
+#endif
 }
 
 
@@ -539,5 +556,7 @@ void initVBPVoc(InterfaceTable *it)
 {
 	DefineDtorUnit(VBPVoc);
 	DefineBufGen("PVocAnal", PVocAnalysis);
-	//DefineBufGen("FreezeBuf", BufferFreeze);
+#ifdef SC_FFT_FFTW
+	DefineBufGen("FreezeBuf", BufferFreeze);
+#endif
 }

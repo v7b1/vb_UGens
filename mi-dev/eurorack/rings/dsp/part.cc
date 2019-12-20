@@ -32,6 +32,7 @@
 
 #include "rings/resources.h"
 
+
 namespace rings {
 
 using namespace std;
@@ -474,7 +475,8 @@ void Part::Process(
     copy(&in[0], &in[size], &aux[0]);
     return;
   }
-  
+  //printf("----\nin[0]: %f\n", in[0]);
+    
   ConfigureResonators();
   
   note_filter_.Process(
@@ -492,6 +494,8 @@ void Part::Process(
   }
   
   note_[active_voice_] = note_filter_.note();
+    
+    //printf("note: %f\n", note_[active_voice_]);
   
   fill(&out[0], &out[size], 0.0f);
   fill(&aux[0], &aux[size], 0.0f);
@@ -512,12 +516,17 @@ void Part::Process(
     // Process input with excitation filter. Inactive voices receive silence.
     excitation_filter_[voice].set_f_q<FREQUENCY_DIRTY>(filter_cutoff, filter_q);
     if (voice == active_voice_) {
+        //printf("copy input!\n");
       copy(&in[0], &in[size], &resonator_input_[0]);
     } else {
+        //printf("fill zero!\n");
       fill(&resonator_input_[0], &resonator_input_[size], 0.0f);
     }
+      //printf("in[0]: %f\n", in[0]);
+      //printf("reson[0]: %f\n", resonator_input_[0]);
     
     if (model_ == RESONATOR_MODEL_MODAL) {
+        
       RenderModalVoice(
           voice, performance_state, patch, frequency, filter_cutoff, size);
     } else if (model_ == RESONATOR_MODEL_FM_VOICE) {
