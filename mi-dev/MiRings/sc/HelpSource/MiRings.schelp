@@ -1,0 +1,92 @@
+TITLE:: MiRings
+summary:: a resonator
+categories:: UGens>Filter
+related:: Classes/Filter
+
+DESCRIPTION::
+A resonator, based on mutable instruments' rings module.
+Original code by Emilie Gillet
+
+
+CLASSMETHODS::
+
+METHOD:: ar
+
+ARGUMENT:: in
+input signal (can also be 0, if used with internal_exciter)
+
+ARGUMENT:: trigger
+used to trigger internal exciter, polyphony etc.
+
+ARGUMENT:: pitch
+pitch (midi note)
+
+ARGUMENT:: structure
+with the modal and non-linear string models, controls the inharmonicity of the spectrum
+(which directly impacts the perceived “material”).
+With the sympathetic strings model, controls the intervals between strings.
+
+ARGUMENT:: brightness
+specifies the brightness and richness of the spectrum (0. -- 1.)
+
+ARGUMENT:: damping
+controls the damping rate of the sound, from 100ms to 10s (0. -- 1.)
+
+ARGUMENT:: position
+specifies at which point the structure is excited (0. -- 1.)
+
+ARGUMENT:: model
+resonator model (0 -- 5):
+0:modal,
+1:sympathetic_string,
+2:string,
+3:fm_voice,
+4:sympathetic_string_quantized,
+5:string_and_reverb
+
+ARGUMENT:: polyphony
+number of simultaneous voices (1 -- 4)
+
+ARGUMENT:: use_trigger
+boolean
+
+ARGUMENT:: intern_exciter
+boolean
+
+ARGUMENT:: intern_note
+boolean
+
+ARGUMENt:: bypass
+
+
+ARGUMENT:: mul
+set output gain
+
+
+returns::
+[outL, outR]
+
+
+
+EXAMPLES::
+
+code::
+// basics
+x = {MiRings.ar(Impulse.ar(1))}.play
+y = {MiRings.ar(PinkNoise.ar(0.2),0, 40)}.play
+x.free
+y.free
+
+
+more:
+(
+{
+	var trig = Dust.ar(1);
+	var pit = Latch.ar(WhiteNoise.ar(), trig).range(30, 60).round;
+	var struct = LFNoise1.kr(0.4).range(0,1);
+
+	MiRings.ar(0, trig, pit, struct, 0.5, 0.7, 0.25, use_trigger: 1, intern_exciter: 1, model:5, polyphony: 4)
+}.play
+)
+
+::
