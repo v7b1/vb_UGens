@@ -1,0 +1,90 @@
+TITLE:: VBFourses
+summary:: a chaotic oscillator network
+categories:: UGens>Generators>Chaotic
+related:: Classes
+
+DESCRIPTION::
+A chaotic oscillator network (4 triangular oscillators / ramp generators) based on descriptions of the 'fourses system' by Peter Blasser (ciat-lonbarde)
+link::https://www.ciat-lonbarde.net::.
+
+Note::
+If you plan to use VBFourses as an audio source, add a highpass filter to the output, as the oscillators/ramps contain strong DC components - which is part of the design.::
+Some background about the original algorithm can be found here: link::http://www.ciat-lonbarde.net/fyrall/paperz/fourses/index.html:: and for more information about the implementation of VBFourses see: link::https://vboehm.net/2014/12/fourses/::.
+
+CLASSMETHODS::
+private:: categories
+
+METHOD:: ar
+
+ARGUMENT::freqarray
+array of up to 4 frequencies pairs. One pair consists of a frequency for ramping up and a frequency for ramping down.
+
+ARGUMENT::smoother
+a smoothing argument for parameter changes (0..1),  (currently) only settable at instantiation time.
+
+
+returns::
+An array of 4 ramp UGens
+
+EXAMPLES::
+
+
+code::
+// a plot
+{ VBFourses.ar( [800, 30, 710, 3, 10, 1, 7, 11] ) }.plot(1)
+
+
+// a simple triangle wave...
+// supplying only one freq pair as arguments is fine.
+(
+{
+    var freqs = [150, 150];
+    var a = VBFourses.ar(freqs);
+	LeakDC.ar(a[0], mul: 0.4) ! 2;
+}.play
+)
+
+
+// feeding it an array of freqs
+(
+{
+	var freqs = Array.fill(8, { rrand(1.0, 500) });
+    var a = VBFourses.ar(freqs, 0.1);
+	LeakDC.ar(a, mul: 0.3);
+}.play
+)
+
+(
+{
+	var freqs = LFNoise0.ar([4, 3, 2, 1, 1, 2, 3, 4]).range(1,1200);
+    var a = VBFourses.ar(freqs, 0.7);
+	var b = LeakDC.ar(a) * 0.3;
+	Splay.ar(b);
+}.play
+)
+::
+
+Section:: smoother
+The 'smoother' argument is smoothing out parameter changes.
+Compare these two examples:
+
+code::
+(
+{
+	var w = LFPulse.ar(1, mul:100, add:100);
+    var freqs = [w, 200];
+    var a = VBFourses.ar(freqs, 0.2);
+	LeakDC.ar(a[0], mul: 0.4) ! 2;
+}.play
+)
+
+(
+{
+	var w = LFPulse.ar(1, mul:100, add:100);
+    var freqs = [w, 200];
+    var a = VBFourses.ar(freqs, 0.9);
+	LeakDC.ar(a[0], mul: 0.4) ! 2;
+}.play
+)
+::
+
