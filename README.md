@@ -1,6 +1,8 @@
 # vb_UGens
 a modest collection of UGens for SuperCollider https://supercollider.github.io/ 
 
+requires fftw3 on Linux.
+
 steps to compile:
 
 - cd into the project folder you want to build
