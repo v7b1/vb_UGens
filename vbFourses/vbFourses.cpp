@@ -10,6 +10,7 @@
 
 #include "SC_PlugIn.h"
 #include <math.h>
+#include <cstdio>
 
 
 // InterfaceTable contains pointers to function in the host (server)
@@ -53,7 +54,7 @@ void VBFourses_Ctor( VBFourses *unit )
     
     unit->r2_sr = 4.0 / SAMPLERATE;
     
-    printf("size_of_horse: %ld\n", sizeof(unit->fourses[0]));
+    std::printf("size_of_horse: %ld\n", sizeof(unit->fourses[0]));
     
     for(int i=0; i<NUMFOURSES+2; i++) {
         memset(&unit->fourses[i], 0, sizeof(unit->fourses[0]));
@@ -62,8 +63,8 @@ void VBFourses_Ctor( VBFourses *unit )
     
     double smooth = IN0(0); // first input
     unit->smoother = 0.01 - pow(smooth,0.2)*0.01;
-    printf("smoother: %f\n", unit->smoother);
-    printf("\nnumInputs: %d\n", unit->mNumInputs);
+    std::printf("smoother: %f\n", unit->smoother);
+    std::printf("\nnumInputs: %d\n", unit->mNumInputs);
     
     // noch nicht ganz gut
     int numPairs = unit->mNumInputs / 2;
@@ -76,7 +77,7 @@ void VBFourses_Ctor( VBFourses *unit )
 //        unit->fourses[i].dec = -fabsf(IN0(i+4)) * unit->r2_sr;
 //        unit->fourses[i].incym1 = 0.0;
 //        unit->fourses[i].decym1 = 0.0;
-//        printf("upfreq %d: %f // downfreq %d: %f\n", i, IN0(i), i, IN0(i+4));
+//        std::printf("upfreq %d: %f // downfreq %d: %f\n", i, IN0(i), i, IN0(i+4));
 //
 //        unit->fourses[i].adder = unit->fourses[i].inc;
 //    }
@@ -99,20 +100,20 @@ void VBFourses_Ctor( VBFourses *unit )
         
         unit->fourses[k].adder = unit->fourses[k].inc;
         
-        printf("up %d: %f // dwn %d: %f Hz | inc: %f | dec: %f\n", k, IN0(i), k, IN0(i+1), unit->fourses[k].inc, unit->fourses[k].dec);
+        std::printf("up %d: %f // dwn %d: %f Hz | inc: %f | dec: %f\n", k, IN0(i), k, IN0(i+1), unit->fourses[k].inc, unit->fourses[k].dec);
     }
     
     
     unit->numHorses = (numInputs-1) / 2;
-    printf("numHorses: %d\n", unit->numHorses);
+    std::printf("numHorses: %d\n", unit->numHorses);
     
     unit->fourses[0].val = 1.;    // dummy 'horse' only used as high limit for fourses[1]
     unit->fourses[5].val = -1.;    // dummy 'horse' only used as low limit for fourses[4]
     unit->fourses[unit->numHorses+1].val = -1.; // in case we got less
     
-    printf("-------- info:\n");
+    std::printf("-------- info:\n");
     for(int i=1; i<=NUMFOURSES; i++) {
-        printf("inc %d: %f | dec %d: %f\n", i, unit->fourses[i].inc, i, unit->fourses[i].dec);
+        std::printf("inc %d: %f | dec %d: %f\n", i, unit->fourses[i].inc, i, unit->fourses[i].dec);
     }
     
     

@@ -11,6 +11,6 @@ set(CMAKE_SHARED_MODULE_SUFFIX ".scx")
 endif()
 
 add_library(VBJonVerb MODULE 
-		VBJonVerb.cpp
+		vbJonVerb.cpp
 		vb.jonverb.h
 )
