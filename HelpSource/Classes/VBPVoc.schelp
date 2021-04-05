@@ -75,5 +75,6 @@ c.pvocAnal(b, 2048);
 
 // play the pvoc data
 x = {VBPVoc.ar(2, c.bufnum, MouseX.kr(0, 1, 0))}.play;
-x.free
+x.free;
+b.free;
 ::
