@@ -1,6 +1,7 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 3.14)
 
-project (vbFourses)
+set(project_name "vbFourses")
+project (${project_name})
 
 include_directories(${SC_PATH}/include/plugin_interface)
 include_directories(${SC_PATH}/include/common)
@@ -13,3 +14,6 @@ set(CMAKE_SHARED_MODULE_SUFFIX ".scx")
 endif()
 
 add_library(vbFourses MODULE vbFourses.cpp)
+
+
+install(TARGETS ${project_name} LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX})

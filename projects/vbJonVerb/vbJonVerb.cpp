@@ -1,6 +1,6 @@
 
 #include "SC_PlugIn.h"
-#include "vb.jonverb.h"
+#include "vbJonVerb.h"
 #include <float.h>
 
 #define DIFFORDER 4

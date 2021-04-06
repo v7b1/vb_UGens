@@ -1,5 +1,5 @@
 /*
- *  vbUGens.cpp
+ *  vbUtils.cpp
  *  Plugins
  *
  *  Created by vboehm on 12.04.15.
@@ -13,7 +13,7 @@
 // InterfaceTable contains pointers to function in the host (server)
 static InterfaceTable *ft;
 
-struct VBSlide : public Unit {
+struct Slide : public Unit {
 	float input_up, input_down;
 	float lastout, slideup, slidedown;
 };
@@ -25,8 +25,8 @@ struct Lores : public Unit {
 };
 
 // function declarations, exposed to C
-static void VBSlide_Ctor(VBSlide *unit);
-static void VBSlide_next(VBSlide *unit, int inNumSamples);
+static void Slide_Ctor(Slide *unit);
+static void Slide_next(Slide *unit, int inNumSamples);
 
 static void Lores_Ctor(Lores *unit);
 static void Lores_next(Lores *unit, int inNumSamples);
@@ -34,9 +34,9 @@ static void Lores_next_unroll(Lores *unit, int inNumSamples);
 
 
 //////////////////////////////////////////////////////////////////////
-// VBSlide
+// Slide
 
-void VBSlide_Ctor( VBSlide *unit )
+void Slide_Ctor( Slide *unit )
 {
     
 	float in1 = IN0(1);
@@ -48,13 +48,13 @@ void VBSlide_Ctor( VBSlide *unit )
 	unit->slidedown = (in2 > 1 ? (1 / in2) : 1.) ;
 	unit->lastout = 0;
 	
-	SETCALC(VBSlide_next);		// tells sc synth the name of the calculation function
-	VBSlide_next(unit, 1);
+	SETCALC(Slide_next);		// tells sc synth the name of the calculation function
+	Slide_next(unit, 1);
 	
 }
 
 
-void VBSlide_next( VBSlide *unit, int inNumSamples)
+void Slide_next( Slide *unit, int inNumSamples)
 {
 	float *in = IN(0);
 	float *out = OUT(0);
@@ -261,8 +261,8 @@ void Lores_next_unroll(Lores *unit, int inNumSamples)
 
 //////////////////////////////////////////////////////////////////////
 
-PluginLoad(VBSlide) {
+PluginLoad(Slide) {
 	ft = inTable;
-	DefineSimpleUnit(VBSlide);
+	DefineSimpleUnit(Slide);
 	DefineSimpleUnit(Lores);
 }

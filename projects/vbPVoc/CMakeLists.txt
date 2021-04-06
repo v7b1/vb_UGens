@@ -1,5 +1,6 @@
-cmake_minimum_required (VERSION 2.8)
-project (vbPVoc)
+cmake_minimum_required (VERSION 3.14)
+set(project_name "vbPVoc")
+project (${project_name})
 
 include_directories(${SC_PATH}/include/plugin_interface)
 include_directories(${SC_PATH}/include/common)
@@ -39,3 +40,14 @@ else()
 	message(FATAL_ERROR "no vDSP and no fftw3 found!!")
 
 endif()
+
+
+# installing
+# if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT OR NOT CMAKE_INSTALL_PREFIX)
+#   message(WARNING "No install prefix provided, defaulting to $BUILD_DIR")
+#   set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}" CACHE PATH "Install prefix" FORCE)
+# endif()
+
+# message(STATUS "Install directory set to: ${CMAKE_INSTALL_PREFIX}")
+
+install(TARGETS ${project_name} LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX})

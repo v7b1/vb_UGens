@@ -1,4 +1,4 @@
-TITLE:: VBSlide
+TITLE:: Slide
 summary:: lowpass filter for envelope following
 categories:: UGens>Generators>Deterministic, UGens>Oscillators
 related:: Classes/Amplitude
@@ -26,24 +26,24 @@ An UGen.
 EXAMPLES::
 
 a plot:
-code:: 
+code::
 (
-{ 
+{
 	var input = LFPulse.ar(10, 0, 0.2);
-	[input, VBSlide.ar(input, 100, 500)]
-}.plot(0.07); 
+	[input, Slide.ar(input, 100, 500)]
+}.plot(0.07);
 )
 ::
 
 more:
-code:: 
+code::
 (
 {
 	var input = LFNoise0.ar(3).range(0,1);
-	var filtered = VBSlide.ar(input, 500, 1500);
+	var filtered = Slide.ar(input, 500, 1500);
 	var outL = SinOsc.ar( filtered.range(30,80).midicps );
 	var outR = SinOsc.ar( input.range(30,80).midicps );
 	[outL, outR]*0.1;
 }.play
-) 
+)
 ::
