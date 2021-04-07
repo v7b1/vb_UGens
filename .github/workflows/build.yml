@@ -57,7 +57,8 @@ jobs:
 
       # Gather all files in a zip
     - name: Zip up build (Unix)
-      if: matrix.os != 'windows-latest'
+      # if: matrix.os != 'windows-latest'
+      if: matrix.os == 'macos-latest'
       shell: bash
       working-directory: ${{github.workspace}}/build
       run: zip -r vbUgens-${{runner.os}} vbUGens
