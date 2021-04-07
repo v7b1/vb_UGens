@@ -1,4 +1,4 @@
-// vboehm.net
+// https://vboehm.net, 2018
 
 VBChebyFilt : UGen {
 	*ar {

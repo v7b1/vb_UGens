@@ -1,4 +1,4 @@
-// vboehm.net, 2019
+// https://vboehm.net, 2019
 
 VBPVoc : MultiOutUGen {
 

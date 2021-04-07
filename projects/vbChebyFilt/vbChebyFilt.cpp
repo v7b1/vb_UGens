@@ -21,7 +21,7 @@
 
 /*
  A chebyshev filter, adapted from S.Smith's DSP-guide
- author: Volker Böhm http://vboehm.net
+ author: Volker Böhm https://vboehm.net
  June 2018
  
  */
@@ -55,7 +55,6 @@ struct VBChebyFilt : public Unit
     double		xms[MAXPOLES];
     double		yms[MAXPOLES];
     int         stages[MAXPOLES*5/2];
-    double		xm1, xm2, ym1, ym2;
     
 };
 
@@ -77,7 +76,6 @@ void VBChebyFilt_Ctor(VBChebyFilt* unit)
 {
     int i;
     int blocksize = unit->mWorld->mFullRate.mBufLength;
-    printf("blocksize: %d\n", blocksize);
     
     int err = memalloc(unit, blocksize);
     if(err)
@@ -87,19 +85,17 @@ void VBChebyFilt_Ctor(VBChebyFilt* unit)
     SETCALC(VBChebyFilt_next);
     
     
-    
     // initialize the unit generator state variables.
     
     unit->cfreq = IN0(1);
     unit->mode = IN0(2);			// 0: lowpass, 1: highpass
     int poles = IN0(3);
     
-    unit->xm1 = unit->xm2 = unit->ym1 = unit->ym2 = 0;
     for(i=0; i<MAXPOLES; i++) {
-        unit->a[i] = 0;
-        unit->b[i] = 0;
-        unit->xms[i] = 0;
-        unit->yms[i] = 0;
+        unit->a[i] = 0.0;
+        unit->b[i] = 0.0;
+        unit->xms[i] = 0.0;
+        unit->yms[i] = 0.0;
     }
     
     unit->ripple = 0.5;
@@ -140,8 +136,6 @@ static void VBChebyFilt_Dtor(VBChebyFilt *unit) {
     
     SCWorld_Allocator alloc(ft, unit->mWorld);
     
-    std::printf("bye bye\n");
-    
 }
 
 
@@ -180,9 +174,8 @@ void calcCoeffs(VBChebyFilt *unit)
             val = results[i]*rgain;
             unit->coeffs[j*5+i] = val;
         }
-        for(i=0; i<2; i++) {
-            val= -results[i+3];
-            unit->coeffs[j*5+3+i] = val;
+        for(i=3; i<5; i++) {
+            unit->coeffs[j*5+i] = -results[i];
         }
         
     }
@@ -193,7 +186,7 @@ void calcCoeffs(VBChebyFilt *unit)
 void calc(VBChebyFilt *unit, int j, double *returns)
 {
     double rp, ip, es, vx, kx, t, w, m, d, k, x0, x1, x2, y1, y2, tt, kk;
-    rp = ip = es = vx = kx = t = w = m = d = k = x0 = x1 = x2 = y1 = y2 = 0;
+    rp = ip = es = vx = kx = t = w = m = d = k = x0 = x1 = x2 = y1 = y2 = 0.0;
     
     // calculate the pole location on the unit circle
     rp = -cos( pi /(unit->poles*2) + j * pi / unit->poles );
@@ -276,15 +269,11 @@ void clearFilt(VBChebyFilt *unit)
 {
     int i;
     for(i=0; i<MAXPOLES; i++) {
-        unit->xms[i] = unit->yms[i] = 0;
+        unit->xms[i] = unit->yms[i] = 0.0;
     }
 }
 
 //////////////////////////////////////////////////////////////////
-
-
-// The calculation function executes once per control period
-// which is typically 64 samples.
 
 
 void VBChebyFilt_next(VBChebyFilt *unit, int inNumSamples)
@@ -298,6 +287,7 @@ void VBChebyFilt_next(VBChebyFilt *unit, int inNumSamples)
 
     double	*outfilt = unit->outfilt;
     double	*infilt = unit->infilt;
+    double  *coeffs = unit->coeffs;
     double	*xms = unit->xms;
     double	*yms = unit->yms;
     int		poles2 = unit->poles >> 1; 	//each biquad can calc 2 poles (and 2 zeros)
@@ -307,14 +297,22 @@ void VBChebyFilt_next(VBChebyFilt *unit, int inNumSamples)
     if(freq != unit->cfreq)
         set_cf(unit, freq);
     
-    
+    // convert input to double precision and copy to outfilt
+#if defined(__APPLE__)
     vDSP_vspdp(in, 1, outfilt+2, 1, vs);
+#else
+    for(int i=0; i<vs; ++i) {
+        outfilt[i+2] = in[i];
+    }
+#endif
+    
     
     for(k=0; k<poles2; k++) {
         
         // restore last two input samps
         infilt[0] = xms[k*2];
         infilt[1] = xms[k*2+1];
+        
         // copy from outfilt to infilt (recursion)
         memcpy(infilt+2, outfilt+2, vs*sizeof(double));
         
@@ -323,8 +321,21 @@ void VBChebyFilt_next(VBChebyFilt *unit, int inNumSamples)
         outfilt[1] = yms[k*2+1];
         
         // do the biquad!
-        vDSP_deq22D(infilt, 1, unit->coeffs+(k*5), outfilt, 1, vs);
+#if defined(__APPLE__)
+        vDSP_deq22D(infilt, 1, coeffs+(k*5), outfilt, 1, vs);
+#else
+        double a0 = coeffs[k*5];
+        double a1 = coeffs[k*5+1];
+        double a2 = coeffs[k*5+2];
+        double b1 = coeffs[k*5+3];
+        double b2 = coeffs[k*5+4];
         
+        for(int i=2; i<vs+2; ++i) {
+            outfilt[i] = a0 * infilt[i] + a1 * infilt[i-1] + a2 * infilt[i-2]
+            - b1 * outfilt[i-1] - b2 * outfilt[i-2];
+        }
+        
+#endif
         // save last two input & output samples for next vector
         xms[k*2] = infilt[vs];
         xms[k*2+1] = infilt[vs+1];
@@ -332,20 +343,22 @@ void VBChebyFilt_next(VBChebyFilt *unit, int inNumSamples)
         yms[k*2+1] = outfilt[vs+1];
     }
     
-    // TODO: check for denormals???
-    /*
-     for(i=0; i<vs; i++) {
-     out[i] = outfilt[i+2];
-     }*/
+    // TODO: check for denormals
+    
+    // copy values to out and convert to single precision
+#if defined(__APPLE__)
     vDSP_vdpsp(outfilt+2, 1, out, 1, vs);
-
+    
+#else
+     for(int i=0; i<vs; i++) {
+         out[i] = outfilt[i+2];
+     }
+#endif
 }
 
 
-// the entry point is called by the host when the plug-in is loaded
 PluginLoad(VBChebyFilt)
 {
-    // InterfaceTable *inTable implicitly given as argument to the load function
 	ft = inTable; // store pointer to InterfaceTable
 
 	DefineDtorUnit(VBChebyFilt);

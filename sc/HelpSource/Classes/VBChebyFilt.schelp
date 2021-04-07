@@ -4,7 +4,7 @@ categories:: UGens>Filter>linear
 related:: Classes/Filter
 
 DESCRIPTION::
-a Chebyshev low/highpass filter based on code from S.Smith's DSP-Guide
+a Chebyshev low/highpass filter based S.Smith's DSP-Guide link::http://www.dspguide.com/::
 
 CLASSMETHODS::
 private:: categories

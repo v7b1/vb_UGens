@@ -1,5 +1,5 @@
 
-// by volker boehm, 2017
+// by volker boehm, 2017, https://vboehm.net
 
 VBFourses : MultiOutUGen {
 	*ar { arg freqarray, smoother = 0.5;
