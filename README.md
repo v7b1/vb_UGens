@@ -11,13 +11,13 @@ For building this collection of UGens/plugins you need the SuperCollider sources
 
 Then clone the vb_UGens repository and its submodules:
 
-```
+```bash
 git clone --recurse-submodules https://github.com/v7b1/vb_UGens.git
 ```
 
 To build all projects/UGens in one go:
 
-```
+```bash
 cd vb_UGens
 mkdir build
 cd build
@@ -34,7 +34,7 @@ Copy this to your SC extensions folder and recompile the class library from Supe
 
 Single projects can be built by:
 
-```
+```bash
 cd vb_UGens/projects/<whateverproject>
 mkdir build
 cd build
