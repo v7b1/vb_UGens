@@ -27,7 +27,7 @@ make install
 
 where `"path/to/SC/sources"` is your local path to the SuperCollider sources.
 
-You should find a newly created folder vbUGens in the build folder. (If you prefer a different install location, you can specify a different directory with `-DCMAKE_INSTALL_PREFIX="path/to/my/folder"`.)
+You should find a newly created folder `vbUGens` in the build folder. (If you prefer a different location, you can specify an install directory with `-DCMAKE_INSTALL_PREFIX="path/to/my/folder"`.)
 Copy this to your SC extensions folder and recompile the class library from SuperCollider.app.
 
 
