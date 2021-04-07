@@ -13,6 +13,9 @@
 	#include <Accelerate/Accelerate.h>
 #endif
 
+#include "MyFFTInterfaceTable.h"
+#include <cstdio>
+
 #define ONEOVERPI	(1.0 / pi)
 
 
@@ -56,7 +59,7 @@ static void VBPVoc_Ctor(VBPVoc *unit)
     
     int fftsize = fabsf(IN0(2));
     if (fftsize == 0) {
-        printf("fft size can't be zero!\n");
+        std::printf("fft size can't be zero!\n setting to 2048");
         fftsize = 2048;
     }
     // make sure fftsize is a power of 2
@@ -67,22 +70,22 @@ static void VBPVoc_Ctor(VBPVoc *unit)
 	int numOutputs = unit->mNumOutputs;
 	
 	unit->m_hopsize = unit->m_fftsize / overlap ;
-	printf("fftsize: %d -- hopsize: %d\n", unit->m_fftsize, unit->m_hopsize);
-    printf("overlap fixed at 4\n");
+    std::printf("fftsize: %d -- hopsize: %d\n", unit->m_fftsize, unit->m_hopsize);
+    std::printf("overlap fixed at 4\n");
 	
 	
-#if SC_FFT_FFTW
-	printf("using FFTW\n");
-#elif SC_FFT_VDSP 
-	printf("using vDSP\n");
-#elif SC_FFT_GREEN
-	printf("using FFTGreen...\n");
-#endif
+//#if SC_FFT_FFTW
+//    printf("using FFTW\n");
+//#elif SC_FFT_VDSP
+//    printf("using vDSP\n");
+//#elif SC_FFT_GREEN
+//    printf("using FFTGreen...\n");
+//#endif
 	
 	
 	GET_BUF
 	if (!bufData) {
-		printf("can't get buffer!\n");
+        std::printf("can't get buffer!\n");
 		SETCALC(*ClearUnitOutputs);
 		unit->mDone = true;
 		return;
@@ -95,15 +98,15 @@ static void VBPVoc_Ctor(VBPVoc *unit)
 	// pvoc file stores mag on first, phasdiff on second channel.
     // so two channels in file make one pvoc track
 	int pvocTracks = bufChannels>>1;
-    printf("pvoc tracks: %d\n", pvocTracks);
-    printf("num of outputs: %d\n", numOutputs);
+//    std::printf("pvoc tracks: %d\n", pvocTracks);
+//    std::printf("num of outputs: %d\n", numOutputs);
     
     unit->m_numTracksToOutput = pvocTracks;
     if( numOutputs > pvocTracks) {
-        printf("warning: more UGen outputs than pvocTracks in file!\n");
+        std::printf("warning: more UGen outputs than pvocTracks in file!\n");
     }
     else if( pvocTracks > numOutputs) {
-        printf("warning: more pvocTracks in file than UGen outputs!\n");
+        std::printf("warning: more pvocTracks in file than UGen outputs!\n");
         unit->m_numTracksToOutput = numOutputs;
     }
 
@@ -137,8 +140,6 @@ static void VBPVoc_Ctor(VBPVoc *unit)
 
 static void VBPVoc_Dtor(VBPVoc *unit) 
 {
-	printf("try to free %d tracks\n", unit->m_numTracksToOutput);
-	
 	for(int i=0; i<unit->m_numTracksToOutput; ++i) {
 		if(unit->m_lastphase[i])
 			RTFree(unit->mWorld, unit->m_lastphase[i]);
@@ -152,7 +153,7 @@ static void VBPVoc_Dtor(VBPVoc *unit)
 	
 	SCWorld_Allocator alloc(ft, unit->mWorld);
 	if(unit->m_scfft) scfft_destroy(unit->m_scfft, alloc);
-	printf("done freeing memory!\n");
+//    std::printf("done freeing memory!\n");
 }
 
 
@@ -299,7 +300,7 @@ void PVocAnalysis(World *world, struct SndBuf *analbuf, struct sc_msg_iter *msg)
 	int		n2 = fftsize >> 1;
 	int		hopsize = fftsize / overlap;
 	
-	printf("---> start analysing!\nbufnum: %d -- fftsize: %d -- overlap: %d\n", inputbufnum, fftsize, overlap);
+	std::printf("---> start analysing!\nbufnum: %d -- fftsize: %d -- overlap: %d\n", inputbufnum, fftsize, overlap);
 	
 	
 	/* 
@@ -321,24 +322,24 @@ void PVocAnalysis(World *world, struct SndBuf *analbuf, struct sc_msg_iter *msg)
     int fftOuputFrames = analbuf->frames / n2;
     float scale = 0.5f;     // input scaling
 	
-	printf("inputframes: %d\n", inputFrames);
-	printf("inputchannels: %d\n", nchnls);
-    printf("fftFrames: %d\n", fftFrames);
-    printf("rest: %d\n", rest);
-	printf("fftOuputFrames: %d\n", fftOuputFrames);
+	std::printf("inputframes: %d\n", inputFrames);
+	std::printf("inputchannels: %d\n", nchnls);
+    std::printf("fftFrames: %d\n", fftFrames);
+    std::printf("rest: %d\n", rest);
+	std::printf("fftOuputFrames: %d\n", fftOuputFrames);
 	
 	// allocate memory ------------------------
 	float *inframe = (float*)RTAlloc(world, fftsize * sizeof(float));
 	float *spectrum = (float*)RTAlloc(world, fftsize * sizeof(float));
 	float *lastphas = (float*)RTAlloc(world, n2 * sizeof(float));
 	
-#if SC_FFT_FFTW
-	printf("using FFTW\n");
-#elif SC_FFT_VDSP 
-	printf("using vDSP\n");
-#elif SC_FFT_GREEN
-	printf("using FFTGreen...\n");
-#endif
+//#if SC_FFT_FFTW
+//    printf("using FFTW\n");
+//#elif SC_FFT_VDSP
+//    printf("using vDSP\n");
+//#elif SC_FFT_GREEN
+//    printf("using FFTGreen...\n");
+//#endif
 
 	
 #if SC_FFT_VDSP
@@ -456,7 +457,7 @@ void PVocAnalysis(World *world, struct SndBuf *analbuf, struct sc_msg_iter *msg)
 		scfft_destroy(m_scfft, alloc);
 #endif
 	
-	printf("---> i'm done!\n");
+//    std::printf("---> i'm done!\n");
 	
 }
 
@@ -469,7 +470,7 @@ float getRand() {
     return out;
 }
 
-
+/*
 #ifdef SC_FFT_FFTW
 #include "fftw3.h"
 #endif
@@ -550,13 +551,13 @@ void BufferFreeze(World *world, struct SndBuf *inputbuf, struct sc_msg_iter *msg
     printf("sorry, buffer freezing is only available with FFTW");
 #endif
 }
-
+*/
 
 void initVBPVoc(InterfaceTable *it)
 {
 	DefineDtorUnit(VBPVoc);
 	DefineBufGen("PVocAnal", PVocAnalysis);
-#ifdef SC_FFT_FFTW
-	DefineBufGen("FreezeBuf", BufferFreeze);
-#endif
+//#ifdef SC_FFT_FFTW
+//    DefineBufGen("FreezeBuf", BufferFreeze);
+//#endif
 }

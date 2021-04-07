@@ -27,14 +27,10 @@ InterfaceTable *ft;
 
 //these are defined in the relevant files
 extern void initVBPVoc(InterfaceTable *inTable);
-//extern void initPV(InterfaceTable *inTable);
-//extern void initPartConv(InterfaceTable *inTable);
 
 PluginLoad(VBPVoc)
 {
 	ft= inTable;
 	
 	initVBPVoc(inTable);
-	//initPV(inTable);
-	//initPartConv(inTable);
 }

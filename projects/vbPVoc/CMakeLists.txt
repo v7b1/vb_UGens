@@ -14,7 +14,6 @@ endif()
 
 add_library(vbPVoc MODULE 
 			${project_name}.cpp
-			MyFFTInterfaceTable.cpp
 			)
 
 
@@ -33,7 +32,7 @@ elseif(FFTW)
 	target_link_libraries(${project_name} ${FFTW})
 
 else()
-	message(FATAL_ERROR "no vDSP and no fftw3 found!!")
+	message(WARNING "no vDSP and no fftw3 found!")
 
 endif()
 

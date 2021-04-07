@@ -34,8 +34,8 @@ VBPVoc : MultiOutUGen {
 		server.listSendMsg(["/b_gen", bufnum, "PVocAnal", buf.bufnum, fftsize, completionMessage.value(this)]);
 	}
 
-	freezeBuf { arg magthresh=0.0;
+/*	freezeBuf { arg magthresh=0.0;
 		server.listSendMsg(["/b_gen", bufnum, "FreezeBuf", magthresh]);
-	}
+	}*/
 
 }
