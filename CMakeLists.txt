@@ -16,6 +16,7 @@ message(STATUS "Install directory set to: ${CMAKE_INSTALL_PREFIX}")
 
 
 # add_subdirectories manually
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/projects/vbChebyFilt)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/projects/vbFourses)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/projects/vbJonVerb)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/projects/vbPVoc)

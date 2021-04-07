@@ -13,7 +13,7 @@ if(APPLE OR WIN32)
 set(CMAKE_SHARED_MODULE_SUFFIX ".scx")
 endif()
 
-add_library(vbFourses MODULE vbFourses.cpp)
+add_library(vbFourses MODULE ${project_name}.cpp)
 
 
 install(TARGETS ${project_name} LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX})

@@ -1,0 +1,37 @@
+TITLE:: VBChebyFilt
+summary:: a Chebyshev low/highpass filter
+categories:: UGens>Filter>linear
+related:: Classes/Filter
+
+DESCRIPTION::
+a Chebyshev low/highpass filter based on code from S.Smith's DSP-Guide
+
+CLASSMETHODS::
+private:: categories
+
+METHOD:: ar
+
+ARGUMENT::in
+input signal
+
+ARGUMENT::freq
+cutoff frequency in Hz
+
+ARGUMENT::mode
+mode 0: lowpass 1: highpass
+
+ARGUMENT::order
+filter order (must be an even number) between 2 and 20
+
+returns::
+An UGen.
+
+EXAMPLES::
+
+code::
+//lowpass
+{ VBChebyFilt.ar(WhiteNoise.ar(0.5), 1000, 0) }.play
+
+// higpass
+{ VBChebyFilt.ar(WhiteNoise.ar(0.5), 1000, 1) }.play
+::

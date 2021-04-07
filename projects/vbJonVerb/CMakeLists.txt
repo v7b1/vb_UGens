@@ -13,8 +13,8 @@ set(CMAKE_SHARED_MODULE_SUFFIX ".scx")
 endif()
 
 add_library(${project_name} MODULE 
-		vbJonVerb.cpp
-		vbJonVerb.h
+		${project_name}.cpp
+		${project_name}.h
 )
 
 install(TARGETS ${project_name} LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX})
