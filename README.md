@@ -5,6 +5,12 @@ Volker Böhm, 2020 https://vboehm.net
 
 
 
+## Installing
+
+Go to the [release page](https://github.com/v7b1/vb_UGens/releases) , download the appropriate binaries for your OS and unpack the files  into your SC extensions folder. (Re-)start SuperCollider or recompile  the class library.
+
+
+
 ## Building
 
 For building this collection of UGens/plugins you need the SuperCollider sources. Get them from here https://github.com/supercollider/supercollider. You don't need to compile them, though!
@@ -43,5 +49,3 @@ make
 ```
 
 
-
-For compiled mac versions see https://vboehm.net/downloads
