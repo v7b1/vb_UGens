@@ -69,7 +69,6 @@ struct RCD : public Unit
     float   state[kNumGates];       // gate states
     short   rotate_connected;
     
-//    float   sah;
 };
 
 
@@ -103,7 +102,6 @@ static void RCD_Ctor(RCD *unit)
     unit->reset_bang = false;
     unit->loop_len = 0;        // off
     unit->rotate_in = 0;
-//    unit->sah = 0.0;
     
     unit->gate_mode = IN0(8) != 0.f;
     
@@ -163,10 +161,10 @@ void recalc_divisions(RCD *unit)
     
     unit->t = t;
     
-    for(int k=0; k<kNumGates; ++k) {
-        std::printf("div[%d]: %d\t-- o[%d]: %d\n", k, unit->div[k], k, unit->o[k]);
-    }
-    std::printf("---\n");
+//    for(int k=0; k<kNumGates; ++k) {
+//        std::printf("div[%d]: %d\t-- o[%d]: %d\n", k, unit->div[k], k, unit->o[k]);
+//    }
+//    std::printf("---\n");
 }
 
 
@@ -190,20 +188,10 @@ void RCD_next(RCD *unit, int inNumSamples)
     uint8_t     *o = unit->o;
     uint8_t     count = unit->count;
     float       *state = unit->state;
-//    float       sah = unit->sah;
     bool        reset_trig = false;
     
     unit->div_mode = div_mode;
     
-//    if(spread != unit->spreadmode_switch) {
-//        unit->spreadmode_switch = spread;
-//        recalc_divisions(unit);
-//    }
-//
-//    if(rotate != unit->rotate_in) {
-//        unit->rotate_in = rotate;
-//        recalc_divisions(unit);
-//    }
     
     if(rotate != unit->rotate_in || spread != unit->spreadmode_switch) {
         unit->rotate_in = rotate;
@@ -239,14 +227,11 @@ void RCD_next(RCD *unit, int inNumSamples)
         
         if(trigger_in)          // && !last_trigger)
         {
-//            if(!last_trigger)
-//                info(unit);
-            
             unit->clock_down = 0;
             
             if (!unit->clock_up)
             {
-                unit->clock_up = 1;//rising edge only
+                unit->clock_up = 1;     //rising edge only
 
                 if (down_beat) {
                     for(int k=0; k<kNumGates; ++k)
@@ -294,13 +279,6 @@ void RCD_next(RCD *unit, int inNumSamples)
                     count = 0;
                 }
                 
-                // use states as bit pattern and output
-//                uint8_t sum = 0;
-//                for(int k=0; k<kNumGates; ++k) {
-//                    uint8_t s = state[k];
-//                    sum += s << k;
-//                }
-//                unit->sah = sah = (float)sum / 256.0f;
             }
             
         } else {
@@ -334,9 +312,6 @@ void RCD_next(RCD *unit, int inNumSamples)
         for(int k=0; k<kNumGates; ++k) {
             OUT(k)[i] = state[k];
         }
-        
-//        out_sah[i] = sah;
-//        outs[9][i] = count;
         
     }
 
