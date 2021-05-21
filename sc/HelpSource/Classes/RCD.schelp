@@ -20,10 +20,10 @@ ARGUMENT:: rotate
 pattern rotation to redistribute clock divisions.
 
 ARGUMENT:: reset
-trigger or gate input to reset
+trigger or gate in to reset
 
 ARGUMENT:: div
-clock divisions: 0: div8, 1: div16, 2: div32, 3: div64
+clock divisions (0..3). 0: div8, 1: div16, 2: div32, 3: div64
 
 ARGUMENT:: spread
 spread mode on/off (0/1). Spread mode causes the output to "spread" evenly amongst the entire max division range.
@@ -37,7 +37,7 @@ set max count (for auto reset).
 ARGUMENT:: down
 down beat flag (0/1), specifies that each clock fires when it's count is 1 (when reset, all clocks fire!). Otherwise (down = 0) clocks fire after N number of pulses are counted.
 
-ARGUMENT:: gate
+ARGUMENT:: gates
 gate mode flag (0/1), if on, output gates, if off, output pulses of the same length as the input clock.
 
 returns:: eight trigger/gate outputs
@@ -47,10 +47,30 @@ returns:: eight trigger/gate outputs
 EXAMPLES::
 
 code::
+// output pulses
 { RCD.ar( LFPulse.ar(20, width: 0.1)) }.plot(1)
 
+// output gates
+{ RCD.ar( LFPulse.ar(20, width: 0.1), gates: 1) }.plot(1)
 
 
+// div16
+(
+{
+	var trig = LFPulse.ar(8, width: 0.001);
+	var freqs =  Array.fill( 8, { |i| (i+1)*100 } );
+	var rotate = 0;
+	var div = 1; // div16
+
+	var pulses = RCD.ar( trig, rotate, 0, div );
+
+	var out = Ringz.ar( pulses, freqs, [2, 1, 0.5, 0.3, 0.2, 0.3, 0.5, 1], 0.05);
+	Splay.ar(out);
+}.play
+)
+
+
+// rotation
 (
 {
 	var freqs =  Array.fill( 8, { |i| (i+1)*100 } );
@@ -59,10 +79,29 @@ code::
 	var rotate = LFNoise0.kr(0.3).range(0, 16);
 	var reset = 0;
 	var spread = 1;
+	var metronome = Ringz.ar(trig, 6000, 0.01, 0.03);
 
 	var pulses = RCD.ar( trig, rotate, reset, 3, spread);
+
 	var out = Ringz.ar( pulses, freqs, decays, 0.05);
-	Splay.ar(out, 0.5) + Ringz.ar(trig, 6000, 0.01, 0.01);
+	Splay.ar(out, level: 0.7).tanh + metronome;
+
+}.play
+)
+
+
+// using 'reset'
+(
+{
+	var clock = LFPulse.ar(8, width: 0.001);
+	var freqs =  Array.fill( 8, { |i| (i*4+50).midicps } );
+	var rotate = 4;
+	var reset = CoinGate.ar(0.05, clock);
+
+	var pulses = RCD.ar( clock, rotate, reset );
+
+	var out = Ringz.ar( pulses, freqs, [1, 1, 0.5, 0.2, 0.2, 0.3, 0.5, 1], 0.05);
+	Splay.ar(out);
 
 }.play
 )
@@ -73,14 +112,14 @@ code::
 {
 	var freqs =  Array.fill( 8, { |i| (i+1)*100 } );
 	var decays =  Array.fill( 8, { |i| 1.0/(i+1) } );
-	var trig = LFPulse.ar(8, width: 0.001);
+	var clock = LFPulse.ar(8, width: 0.001);
 	var rotate = 7;
 	var spread = 1;
 	var len = 23;
 
-	var pulses = RCD.ar( trig, rotate, 0, 0, spread, 1, len );
+	var pulses = RCD.ar( clock, rotate, 0, 0, spread, 1, len );
 	var out = Ringz.ar( pulses, freqs, decays, 0.05);
-	Splay.ar(out, 0.5);
+	Splay.ar(out);
 }.play
 )
 
@@ -95,8 +134,28 @@ code::
 
 	var pulses = RCD.ar( trig, rotate, 0, 0, spread, 0, );
 	var out = Ringz.ar( pulses, freqs, decays, 0.05);
-	Splay.ar(out, 0.5);
+	Splay.ar(out);
 }.play
 )
+
+
+// gates
+(
+{
+	var freqs =  Array.fill( 8, { |i| (i*5+50).midicps } );
+	var amps = [1, 0.5, 0.3, 0.3, 0.3, 0.2, 0.2, 0.2];
+	var trig = LFPulse.ar(7, width: 0.01);
+	var rotate = -2;
+	var spread = TIRand.kr(0, 1, Impulse.kr(0.13) ) ;
+	var div = TIRand.kr( 0, 3, Impulse.kr(0.1) );
+
+	var pulses = RCD.ar( trig, rotate, 0, div, spread, gates: 1 );
+
+	var oscs = SinOsc.ar( freqs, 0, pulses*amps);
+	var out = Splay.ar(oscs.rotate(3), level: 0.5);
+	out  + CombN.ar(out, 2, [2, 1], 3, 0.3);
+}.play
+)
+
 
 ::

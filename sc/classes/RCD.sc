@@ -4,8 +4,8 @@
 
 RCD : MultiOutUGen {
 	*ar {
-		arg clock=0, rotate=0, reset=0, div=0, spread=0, auto=0, len=0, down=0, gate=0;
-		^this.multiNew( 'audio', clock, rotate, reset, div, spread, auto, len, down, gate );
+		arg clock=0, rotate=0, reset=0, div=0, spread=0, auto=0, len=0, down=0, gates=0;
+		^this.multiNew( 'audio', clock, rotate, reset, div, spread, auto, len, down, gates );
 	}
 	init { arg ... theInputs;
 		inputs = theInputs;

@@ -59,8 +59,8 @@ struct RCD : public Unit
     uint8_t div_mode;
     uint8_t spreadmode_switch;
     
-    bool    last_trigger;
-    bool    reset_bang;
+//    bool    last_trigger;
+//    bool    reset_bang;
     
     bool    gate_mode;
     uint8_t loop_len;
@@ -96,10 +96,8 @@ static void RCD_Ctor(RCD *unit)
     unit->t = 7;
     
     unit->div_mode = 0;
-    unit->spreadmode_switch=0;
-    
-    unit->last_trigger = false;        // do we still need this?
-    unit->reset_bang = false;
+    unit->spreadmode_switch = 0;
+
     unit->loop_len = 0;        // off
     unit->rotate_in = 0;
     
@@ -182,23 +180,26 @@ void RCD_next(RCD *unit, int inNumSamples)
     
     uint16_t    vs = inNumSamples;
     
-    bool        reset_bang = unit->reset_bang;
-    bool        last_trigger = unit->last_trigger;
     uint8_t     *div = unit->div;
     uint8_t     *o = unit->o;
     uint8_t     count = unit->count;
+    uint8_t     clock_up = unit->clock_up;
+    uint8_t     clock_down = unit->clock_down;
     float       *state = unit->state;
-    bool        reset_trig = false;
-    
-    unit->div_mode = div_mode;
     
     
-    if(rotate != unit->rotate_in || spread != unit->spreadmode_switch) {
+    
+    if(rotate != unit->rotate_in ||
+       spread != unit->spreadmode_switch ||
+       div_mode != unit->div_mode)
+    {
         unit->rotate_in = rotate;
         unit->spreadmode_switch = spread;
+        unit->div_mode = div_mode & 0x03;
         recalc_divisions(unit);
     }
     
+    bool reset_trig;
     if (INRATE(2) == calc_FullRate) {
         float sum = 0.f;
         for(int i=0; i<vs; ++i)
@@ -208,16 +209,15 @@ void RCD_next(RCD *unit, int inNumSamples)
     else
         reset_trig = (reset_in[0] > 0.f);
     
-    if ( reset_trig || reset_bang ) {
+    if ( reset_trig ) {
         if (unit->reset2_up == 0) {
             unit->reset2_up = 1;
             memset(o, 0, kNumGates);
-            
-            reset_bang = false;
             count = 0;      // good ?
         }
-        
-    } else  unit->reset2_up = 0;
+    }
+    else
+        unit->reset2_up = 0;
     
     
     
@@ -225,13 +225,13 @@ void RCD_next(RCD *unit, int inNumSamples)
     {
         bool trigger_in = in1[i] > 0.f;
         
-        if(trigger_in)          // && !last_trigger)
+        if(trigger_in)
         {
-            unit->clock_down = 0;
+            clock_down = 0;
             
-            if (!unit->clock_up)
+            if (!clock_up)
             {
-                unit->clock_up = 1;     //rising edge only
+                clock_up = 1;     //rising edge only
 
                 if (down_beat) {
                     for(int k=0; k<kNumGates; ++k)
@@ -242,10 +242,8 @@ void RCD_next(RCD *unit, int inNumSamples)
                             if(o[k] == ((div[k] >> 1) + 1)) state[k] = 0.0f;
                         
                     } else {
-                        for(int k=0; k<kNumGates; ++k) {
+                        for(int k=0; k<kNumGates; ++k)
                             if(++o[k] > div[k]) o[k] = 0;
-                        }
-
                     }
                 } else { //DOWNBEAT is off (upbeat)
                     if (unit->gate_mode)
@@ -272,7 +270,7 @@ void RCD_next(RCD *unit, int inNumSamples)
                     if (++count >= limit) {
                         count = 0;
                         memset(o, 0, kNumGates);        // reset all counters
-                        std::printf("auto-reset!\n");
+//                        std::printf("auto-reset!\n");
                     }
                 }
                 else {
@@ -283,11 +281,11 @@ void RCD_next(RCD *unit, int inNumSamples)
             
         } else {
             
-            unit->clock_up = 0;
+            clock_up = 0;
             
-            if (!unit->clock_down)
+            if (!clock_down)
             {
-                unit->clock_down = 1;      //rising edge only
+                clock_down = 1;      //rising edge only
                 
                 if (unit->gate_mode) {
                     if (down_beat) {
@@ -307,17 +305,16 @@ void RCD_next(RCD *unit, int inNumSamples)
             }
         }
         
-        last_trigger = trigger_in;
-        
+        // output states
         for(int k=0; k<kNumGates; ++k) {
             OUT(k)[i] = state[k];
         }
         
     }
 
-    unit->reset_bang = reset_bang;
-    unit->last_trigger = last_trigger;
     unit->count = count;
+    unit->clock_up = clock_up;
+    unit->clock_down = clock_down;
 
 }
 
