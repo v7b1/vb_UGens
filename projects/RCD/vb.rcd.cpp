@@ -29,8 +29,9 @@
 /**
     RCD
  
-    A rotation clock divider
+    A rotating clock divider
     based on RCD eurorack module by 4MS
+    original code by Dan Green
  
     volker böhm, 2021
  
@@ -58,9 +59,6 @@ struct RCD : public Unit
     
     uint8_t div_mode;
     uint8_t spreadmode_switch;
-    
-//    bool    last_trigger;
-//    bool    reset_bang;
     
     bool    gate_mode;
     uint8_t loop_len;
