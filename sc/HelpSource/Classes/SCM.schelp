@@ -1,0 +1,60 @@
+TITLE:: SCM
+summary:: shuffling clock multiplier
+categories:: UGens>Triggers
+related:: Classes/PulseDivider
+
+DESCRIPTION::
+A Shuffling Clock Multiplier based on eurorack module 'SCM' by 4ms (Original author: Dan Green). link::https://4mscompany.com/scm.php:: and link::https://4mscompany.com/scmbo.php:: respectively.
+SCM produces eight multiplied clock tempos from a single input clock, ranging from x1 to x8.
+
+CLASSMETHODS::
+
+METHOD:: ar
+
+ARGUMENT:: clock
+External clock trigger input
+
+ARGUMENT:: bpm
+Beats per minute for internal clock
+
+ARGUMENT:: rotate
+Shift 'multiply-by' amount on all outputs (0..255).
+
+ARGUMENT:: slip
+Slip causes particular beats to land ahead in time (0..255).
+
+ARGUMENT:: shuffle
+Selects which beats a 'slipped' by the slip argument (0..255).
+
+ARGUMENT:: skip
+Omits certain beats in a pattern (0..255).
+
+ARGUMENT:: pw
+pulse width (0..255).
+
+
+returns:: Eight trigger/gate outputs.
+Of these, five are slipped/shuffled/skipped clock outputs (out3, 4, 5, 6 and 8) - each is based on a multiple of the input clock frequency (x3, x4, x5, x6, and x8, respectively) - and three are steady clock outputs (out1, 2 and 7).
+
+
+
+EXAMPLES::
+
+code::
+
+(
+{
+	var tick = LFPulse.ar(3.1);
+	var rotate = LFNoise0.kr(0.3).range(0, 7);
+
+	var pulses = SCM.ar(0, 80, 0, 100, 40, 100, pw: 3);
+
+	var freqs =  [60, 67, 72, 75, 79, 81, 84, 86].midicps;
+	var out = Ringz.ar( pulses, freqs, 0.08, 1);
+
+	Splay.ar(out);
+
+}.play
+)
+
+::
