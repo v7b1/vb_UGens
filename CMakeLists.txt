@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 3.14)
 set(lib_name "vbUGens")
 project("${lib_name}")
 
+if (APPLE)
+    if (NOT CMAKE_OSX_ARCHITECTURES)
+        set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "macOS architecture" FORCE)
+    endif()
+endif()
+
 
 # set installation directory
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT OR NOT CMAKE_INSTALL_PREFIX)

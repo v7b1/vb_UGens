@@ -18,17 +18,20 @@ static InterfaceTable *ft;
 
 
 #define NUMFOURSES 4
+#define MAXINPUTS (NUMFOURSES * 2 + 1)
+
+#define ONE_POLE(out, in, coeff) out += coeff * (in - out);
+
 
 typedef struct {
     // this is a horse... basically a ramp generator
     double      freq;
     double		val;
-    double		inc;
-    double		dec;
+    double		inc, incy;
+    double		dec, decy;
     double		adder;
-    double		incy, incym1;		// used for smoothing
-    double		decy, decym1;		// used for smoothing
 } t_horse;
+
 
 struct VBFourses : public Unit {
 	double      input_up, input_down;
@@ -54,40 +57,22 @@ void VBFourses_Ctor( VBFourses *unit )
     
     unit->r2_sr = 4.0 / SAMPLERATE;
     
-    std::printf("size_of_horse: %ld\n", sizeof(unit->fourses[0]));
-    
     for(int i=0; i<NUMFOURSES+2; i++) {
-        memset(&unit->fourses[i], 0, sizeof(unit->fourses[0]));
+        memset(&unit->fourses[i], 0, sizeof(t_horse));
     }
 
     
-    double smooth = IN0(0); // first input
+    double smooth = IN0(0);         // first input
     unit->smoother = 0.01 - pow(smooth,0.2)*0.01;
-    std::printf("smoother: %f\n", unit->smoother);
-    std::printf("\nnumInputs: %d\n", unit->mNumInputs);
     
-    // noch nicht ganz gut
-    int numPairs = unit->mNumInputs / 2;
-    if(numPairs > NUMFOURSES) numPairs = NUMFOURSES;
-    
-//    for(int i=1; i<=numPairs; i++) {
-//
-//        unit->fourses[i].val = 0.0;
-//        unit->fourses[i].inc = fabsf(IN0(i)) * unit->r2_sr;
-//        unit->fourses[i].dec = -fabsf(IN0(i+4)) * unit->r2_sr;
-//        unit->fourses[i].incym1 = 0.0;
-//        unit->fourses[i].decym1 = 0.0;
-//        std::printf("upfreq %d: %f // downfreq %d: %f\n", i, IN0(i), i, IN0(i+4));
-//
-//        unit->fourses[i].adder = unit->fourses[i].inc;
-//    }
-    
-    
+
     
     int numInputs = unit->mNumInputs;
-    int maxInputs = NUMFOURSES*2 + 1;
-    if (numInputs > maxInputs)
-        numInputs = maxInputs;
+    if (numInputs > MAXINPUTS)
+        numInputs = MAXINPUTS;
+    
+//    std::printf("\nnumInputs: %d\n", unit->mNumInputs);
+    
     
     // formatting as up/dwn pairs
     for(int i=1, k=1; i<numInputs; i+=2, k++) {
@@ -95,31 +80,20 @@ void VBFourses_Ctor( VBFourses *unit )
         unit->fourses[k].dec = -fabsf(IN0(i+1)) * unit->r2_sr;
         
         unit->fourses[k].val = 0.0;
-        unit->fourses[k].incym1 = 0.0;
-        unit->fourses[k].decym1 = 0.0;
         
         unit->fourses[k].adder = unit->fourses[k].inc;
         
-        std::printf("up %d: %f // dwn %d: %f Hz | inc: %f | dec: %f\n", k, IN0(i), k, IN0(i+1), unit->fourses[k].inc, unit->fourses[k].dec);
+//        std::printf("up %d: %f // dwn %d: %f Hz | inc: %f | dec: %f\n", k, IN0(i), k, IN0(i+1), unit->fourses[k].inc, unit->fourses[k].dec);
     }
     
     
     unit->numHorses = (numInputs-1) / 2;
-    std::printf("numHorses: %d\n", unit->numHorses);
+//    std::printf("numHorses: %d\n", unit->numHorses);
     
     unit->fourses[0].val = 1.;    // dummy 'horse' only used as high limit for fourses[1]
-    unit->fourses[5].val = -1.;    // dummy 'horse' only used as low limit for fourses[4]
-    unit->fourses[unit->numHorses+1].val = -1.; // in case we got less
-    
-    std::printf("-------- info:\n");
-    for(int i=1; i<=NUMFOURSES; i++) {
-        std::printf("inc %d: %f | dec %d: %f\n", i, unit->fourses[i].inc, i, unit->fourses[i].dec);
-    }
+    unit->fourses[unit->numHorses+1].val = -1.; // dummy 'horse' only used as low limit
     
     
-    
-    
-	
     SETCALC(VBFourses_next);
 	VBFourses_next(unit, 1);
 	
@@ -128,55 +102,43 @@ void VBFourses_Ctor( VBFourses *unit )
 
 void VBFourses_next( VBFourses *unit, int inNumSamples)
 {
-    t_horse     *fourses = unit->fourses;
-    double      val, c, r2_sr, hilim, lolim;
+    t_horse *fourses = unit->fourses;
     
-    c = unit->smoother;
-    r2_sr = unit->r2_sr;
-    hilim = fourses[0].val;
-    lolim = fourses[5].val;
+    double  c = unit->smoother;
+    double  r2_sr = unit->r2_sr;
+    double  hilim = 1.0;
+    double  lolim = -1.0;
 
-    // old
-//    for(int i=1; i<=NUMFOURSES; i++) {
-//        fourses[i].inc = fabsf(IN0(i)) * unit->r2_sr;
-//        fourses[i].dec = -fabsf(IN0(i+4)) * unit->r2_sr;
-//    }
-    
-    int num = unit->mNumInputs;
-    if(num > NUMFOURSES+1)
-        num = NUMFOURSES;
-    
-    // formatting as up/dwn pairs
-    for(int i=1; i<num; i+=2) {
-        fourses[i].inc = fabsf(IN0(i)) * unit->r2_sr;
-        fourses[i].dec = -fabsf(IN0(i+1)) * unit->r2_sr;
+    int numHorses = unit->numHorses;
+    int numInputs = unit->mNumInputs;
+
+
+    for(int i=1, k=1; i<numInputs; i+=2, k++) {
+        fourses[k].inc = fabsf(IN0(i)) * r2_sr;
+        fourses[k].dec = -fabsf(IN0(i+1)) * r2_sr;
     }
     
-    int numHorses = unit->numHorses;
     
 	for(int i=0; i<inNumSamples; i++) {
         
-        for(int n=1; n<=numHorses; n++) {
+        for(int k=1; k<=numHorses; k++) {
             // smoother
-            fourses[n].incy = fourses[n].inc*c + fourses[n].incym1*(1-c);
-            fourses[n].incym1 = fourses[n].incy;
+            ONE_POLE(fourses[k].incy, fourses[k].inc, c);
+            ONE_POLE(fourses[k].decy, fourses[k].dec, c);
             
-            fourses[n].decy = fourses[n].dec*c + fourses[n].decym1*(1-c);
-            fourses[n].decym1 = fourses[n].decy;
+            double val = fourses[k].val;
+            val += fourses[k].adder;
             
-            val = fourses[n].val;
-            val += fourses[n].adder;
-            
-            if(val <= fourses[n+1].val || val <= lolim ) {
-                fourses[n].adder = fourses[n].incy;
+            if(val <= fourses[k+1].val || val <= lolim ) {
+                fourses[k].adder = fourses[k].incy;
             }
-            else if( val >= fourses[n-1].val || val >= hilim ) {
-                fourses[n].adder = fourses[n].decy;
+            else if( val >= fourses[k-1].val || val >= hilim ) {
+                fourses[k].adder = fourses[k].decy;
             }
             
-            OUT(n-1)[i] = val;
+            OUT(k-1)[i] = val;
             
-            fourses[n].val = val;
+            fourses[k].val = val;
         }
 
 	}
