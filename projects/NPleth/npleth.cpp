@@ -60,6 +60,8 @@
 
 #include "filter.h"
 
+#define CLAMP(a, lo, hi) ( (a)>(lo)?( (a)<(hi)?(a):(hi) ):(lo) )
+
 
 #define AUDIO_BLOCK_SAMPLES 128
 #define AMP_SCALE (1.0f / (1 << 15))
@@ -216,6 +218,9 @@ void NPleth_next(NPleth *unit, int inNumSamples)
     
     // clipping / clamping???
     // knob params and res should be between 0..1 -- change cf also?
+    CLAMP(knob_1, 0.0f, 1.0f);
+    CLAMP(knob_2, 0.0f, 1.0f);
+    CLAMP(res, 0.0f, 1.0f);
     
     if (my_generator < 0) my_generator = 0;
     else if (my_generator >= MAX_GENERATORS) my_generator = MAX_GENERATORS-1;
