@@ -87,7 +87,7 @@ struct NPleth : public Unit
     float          prev_cf;
     float          prev_res;
     
-    DCBlocker       blocker;
+    DCBlocker       *blocker;
     Saturator       *satur;
     FilterMode      filter_mode;
     
@@ -96,7 +96,6 @@ struct NPleth : public Unit
     float          fb1, fb2, fb3;
     
 };
-
 
 
 static void NPleth_next(NPleth *unit, int inNumSamples);
@@ -138,33 +137,33 @@ static void NPleth_Ctor(NPleth *unit)
         unit->generator_[i]->init(unit->mem_pool);
     }
     
-    unit->ab.zeroAudioBlock();
-    
     unit->prev_generator = 0;
+    unit->fb1 = unit->fb2 = unit->fb3 = 0.0f;
+    unit->prev_output = 0.0f;
     unit->count = 0;
+    unit->prev_cf = -1.f;
+    unit->prev_res = -1.f;
+    
+    audio_block_t *ab = &unit->ab;
+    ab->zeroAudioBlock();
     
     uint16_t gen = IN0(0);
+    if (gen < 0) gen = 0;
+    else if (gen >= MAX_GENERATORS) gen = MAX_GENERATORS-1;
     unit->generator_[gen]->reset();
-    unit->generator_[gen]->process(IN0(1), IN0(2), &unit->ab);
+    unit->generator_[gen]->process(IN0(1), IN0(2), ab);
     
 
     unit->filter_mode = LOWPASS;
     unit->svf2 = new StateVariableFilter2ndOrder;
-    unit->svf2->setParameters(0.125f, 1.0f);
     
     unit->satur = new Saturator;
-    
-    unit->blocker.init(unit->sr);
-    
-
-    
-    unit->fb1 = unit->fb2 = unit->fb3 = 0.0f;
-    unit->prev_output = 0.0f;
+    unit->blocker = new DCBlocker;
+    unit->blocker->init(unit->sr);
 
     
     SETCALC(NPleth_next);
     
-    NPleth_next(unit, 1);
 }
 
 
@@ -175,6 +174,9 @@ static void NPleth_Dtor(NPleth *unit)
     
     free(unit->mem_pool);
     free(unit->ab.data);
+    free(unit->svf2);
+    free(unit->blocker);
+    free(unit->satur);
 }
 
 
@@ -204,7 +206,7 @@ void NPleth_next(NPleth *unit, int inNumSamples)
     uint16_t count = unit->count;
     audio_block_t *ab = &unit->ab;
     StateVariableFilter2ndOrder *svf2 = unit->svf2;
-    DCBlocker *blocker = &unit->blocker;
+    DCBlocker *blocker = unit->blocker;
     Saturator *satur = unit->satur;
     FilterMode filter_mode = unit->filter_mode;
     float   fb1, fb2, fb3, prev_output;
@@ -216,7 +218,7 @@ void NPleth_next(NPleth *unit, int inNumSamples)
     
     
     
-    // clipping / clamping???
+    // clipping / clamping
     // knob params and res should be between 0..1 -- change cf also?
     CLAMP(knob_1, 0.0f, 1.0f);
     CLAMP(knob_2, 0.0f, 1.0f);

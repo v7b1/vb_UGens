@@ -1,3 +1,5 @@
+
+
 enum FilterMode {
     LOWPASS,
     BANDPASS,
@@ -17,8 +19,8 @@ public:
 
     void setParameters(float fc, float q) {
         
-        const float g = std::tanf(M_PI * fc);
-        const float R = 1.0f / (2.0f * q);
+        const double g = std::tan(M_PI * fc);
+        const double R = 1.0f / (2.0f * q);
 
         alpha0 = 1.0f / (1.0f + 2.0f * R * g + g * g);
         alpha = g;
@@ -82,21 +84,26 @@ private:
 class Biquad
 {
 public:
-    void reset() {
-        xm1 = xm2 = ym1 = ym2 = 0.0;
+    Biquad() {
+        reset();
+        setParams(0.001, 1.0);
     }
     
-    void setParams(float cf, float Q)
+    void reset() {
+        xm1 = xm2 = ym1 = ym2 = 0.0f;
+    }
+    
+    void setParams(double cf, double Q)
     {
-        float K = std::tanf(M_PI * cf);
+        const double K = std::tan(M_PI * cf);
         
         // highpass
-        float norm = 1.0f / (1.0f + K / Q + K * K);
+        double norm = 1.0 / (1.0 + K / Q + K * K);
         a0 = norm;
-        a1 = -2.0f * norm;
+        a1 = -2.0 * norm;
         a2 = norm;
-        b1 = 2.0f * (K * K - 1.0f) * norm;
-        b2 = (1.0f - K / Q + K * K) * norm;
+        b1 = 2.0 * (K * K - 1.0) * norm;
+        b2 = (1.0 - K / Q + K * K) * norm;
         
     }
     
@@ -112,16 +119,8 @@ public:
     
     
 private:
-    float a0 = 1.0f;
-    float a1 = 0.0f;
-    float a2 = 0.0f;
-    float b1 = 0.0f;
-    float b2 = 0.0f;
-    
-    float xm1 = 0.0f;
-    float xm2 = 0.0f;
-    float ym1 = 0.0f;
-    float ym2 = 0.0f;
+    float a0, a1, a2, b1, b2;
+    float xm1, xm2, ym1, ym2;
     
 };
 
@@ -131,18 +130,19 @@ private:
 class DCBlocker
 {
 public:
+    DCBlocker() {}
+    
     void init(float sr)
     {
-        fc = 22.05f / sr;
+        const double fc = 22.05 / sr;
         
-        float poleInc = M_PI / 4.0f;
-        float firstAngle = poleInc / 2;
-        float q1 = 1.0 / (2 * cosf(firstAngle));
-        float q2 = 1.0 / (2 * cosf(firstAngle+poleInc));
+        const double poleInc = M_PI / 4.0;
+        const double firstAngle = poleInc / 2.0;
+        float q1 = 1.0 / (2.0 * cos(firstAngle));
+        float q2 = 1.0 / (2.0 * cos(firstAngle+poleInc));
         
         b1.setParams(fc, q1);
         b2.setParams(fc, q2);
-        
     }
     
     float process(float input)
@@ -156,8 +156,6 @@ private:
     
     Biquad b1;
     Biquad b2;
-    float fc = 0.001f;
-    
     
 };
 
