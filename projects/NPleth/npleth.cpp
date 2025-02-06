@@ -184,8 +184,14 @@ static void NPleth_Dtor(NPleth *unit)
 // input range: 0..1
 float calc_cf(float f)
 {
-    float cf = f * 11.0f - 5.5f;
-    cf = powf(2.0f, cf) * 261.625565f;
+    // TODO: scaling from VCV Rack, pretty extreme?
+//    float cf = f * 11.0f - 5.5f;
+//    cf = powf(2.0f, cf) * 261.625565f;
+//    return cf;
+    
+    // one octave higher
+    float cf = f * 10.0f - 5.0f;
+    cf = powf(2.0f, cf) * 523.251131;
     return cf;
 }
 
@@ -196,10 +202,10 @@ void NPleth_next(NPleth *unit, int inNumSamples)
     float       *out = OUT(0);
     
     uint16_t    my_generator = IN0(0);
-	float       knob_1 = IN0(1);          // knob 1
-    float       knob_2 = IN0(2);          // knob 2
-	float       cf = IN0(3);     // reset input
-    float       res = IN0(4);
+	float       knob_1 = IN0(1);        // knob 1 (0..1)
+    float       knob_2 = IN0(2);        // knob 2 (0..1)
+	float       cf = IN0(3);            // filter cut off (0..1)
+    float       res = IN0(4);           // filter resonance (0..1)
     
     uint16_t    vs = inNumSamples;
     
@@ -222,10 +228,8 @@ void NPleth_next(NPleth *unit, int inNumSamples)
     // knob params and res should be between 0..1 -- change cf also?
     CLAMP(knob_1, 0.0f, 1.0f);
     CLAMP(knob_2, 0.0f, 1.0f);
+    CLAMP(cf, 0.0f, 1.0f);
     CLAMP(res, 0.0f, 1.0f);
-    
-    if (my_generator < 0) my_generator = 0;
-    else if (my_generator >= MAX_GENERATORS) my_generator = MAX_GENERATORS-1;
     
     
     if (cf != unit->prev_cf || res != unit->prev_res)
@@ -233,8 +237,8 @@ void NPleth_next(NPleth *unit, int inNumSamples)
         unit->prev_cf = cf;
         unit->prev_res = res;
         
-//        float fc = calc_cf(cf) * unit->r_sr; // normalized cutoff freq
-        float fc = cf * unit->r_sr; // normalized cutoff freq
+        float fc = calc_cf(cf) * unit->r_sr; // normalized cutoff freq
+//        float fc = cf * unit->r_sr; // normalized cutoff freq
         float q = res * res * 10.0f + 0.707107f;
         svf2->setParameters(fc, q);
     }
@@ -268,6 +272,9 @@ void NPleth_next(NPleth *unit, int inNumSamples)
         if (count >= AUDIO_BLOCK_SAMPLES)
         {
             count = 0;
+            
+            if (my_generator < 0) my_generator = 0;
+            else if (my_generator >= MAX_GENERATORS) my_generator = MAX_GENERATORS-1;
 
             if (my_generator != unit->prev_generator) {
                 unit->prev_generator = my_generator;
@@ -287,6 +294,9 @@ void NPleth_next(NPleth *unit, int inNumSamples)
     
     else
     {
+        if (my_generator < 0) my_generator = 0;
+        else if (my_generator >= MAX_GENERATORS) my_generator = MAX_GENERATORS-1;
+        
         if (my_generator != unit->prev_generator) {
             unit->prev_generator = my_generator;
             unit->generator_[my_generator]->reset();
