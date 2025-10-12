@@ -225,7 +225,7 @@ void NPleth_next(NPleth *unit, int inNumSamples)
     
     
     // clipping / clamping
-    // knob params and res should be between 0..1 -- change cf also?
+    // all params should be between 0..1
     CLAMP(knob_1, 0.0f, 1.0f);
     CLAMP(knob_2, 0.0f, 1.0f);
     CLAMP(cf, 0.0f, 1.0f);
@@ -238,7 +238,6 @@ void NPleth_next(NPleth *unit, int inNumSamples)
         unit->prev_res = res;
         
         float fc = calc_cf(cf) * unit->r_sr; // normalized cutoff freq
-//        float fc = cf * unit->r_sr; // normalized cutoff freq
         float q = res * res * 10.0f + 0.707107f;
         svf2->setParameters(fc, q);
     }
