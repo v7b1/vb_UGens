@@ -89,7 +89,7 @@ struct NPleth : public Unit
     
     DCBlocker       *blocker;
     Saturator       *satur;
-    FilterMode      filter_mode;
+//    FilterMode      filter_mode;
     
     // feedback option
     float          prev_output;
@@ -154,7 +154,7 @@ static void NPleth_Ctor(NPleth *unit)
     unit->generator_[gen]->process(IN0(1), IN0(2), ab);
     
 
-    unit->filter_mode = LOWPASS;
+//    unit->filter_mode = LOWPASS;
     unit->svf2 = new StateVariableFilter2ndOrder;
     
     unit->satur = new Saturator;
@@ -206,6 +206,7 @@ void NPleth_next(NPleth *unit, int inNumSamples)
     float       knob_2 = IN0(2);        // knob 2 (0..1)
 	float       cf = IN0(3);            // filter cut off (0..1)
     float       res = IN0(4);           // filter resonance (0..1)
+    FilterMode  filter_mode = static_cast<FilterMode>IN0(5); //unit->filter_mode;
     
     uint16_t    vs = inNumSamples;
     
@@ -214,7 +215,7 @@ void NPleth_next(NPleth *unit, int inNumSamples)
     StateVariableFilter2ndOrder *svf2 = unit->svf2;
     DCBlocker *blocker = unit->blocker;
     Saturator *satur = unit->satur;
-    FilterMode filter_mode = unit->filter_mode;
+    
     float   fb1, fb2, fb3, prev_output;
     
     fb1 = unit->fb1;
@@ -226,10 +227,12 @@ void NPleth_next(NPleth *unit, int inNumSamples)
     
     // clipping / clamping
     // all params should be between 0..1
-    CLAMP(knob_1, 0.0f, 1.0f);
-    CLAMP(knob_2, 0.0f, 1.0f);
-    CLAMP(cf, 0.0f, 1.0f);
-    CLAMP(res, 0.0f, 1.0f);
+    knob_1 = CLAMP(knob_1, 0.0f, 1.0f);
+    knob_2 = CLAMP(knob_2, 0.0f, 1.0f);
+    cf = CLAMP(cf, 0.0f, 1.0f);
+    res = CLAMP(res, 0.0f, 1.0f);
+    
+    filter_mode = static_cast<FilterMode>CLAMP(filter_mode, 0, 2);
     
     
     if (cf != unit->prev_cf || res != unit->prev_res)
