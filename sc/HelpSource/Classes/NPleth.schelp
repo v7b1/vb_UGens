@@ -1,0 +1,105 @@
+TITLE:: NPleth
+summary:: A multi-algorithm digital noise generator
+categories:: UGens>Generators>Stochastic
+
+
+DESCRIPTION::
+NPleth is based on the eurorack module Noise Plethora by Befaco link::https://www.befaco.org/noise-plethora/::.
+It represents of one of the two algorithmic noise channels from the original module, followed by a digital multi-mode filter. There are several algorithms to choose from, which produce textures, rumbles, low-fi blips, spikes, oscillator clusters, harsh noises, and much more. Each algorithm can be controlled by two parameters (x and y).
+link::https://github.com/Befaco/Noise_plethora::, copyright (c) 2021 Befaco / Jeremy Bernstein.
+Befaco's Noise Plethora runs on a Teensy board and uses its audio library, copyright (c) 2014, Paul Stoffregen.
+The emulation of the analog multi-mode filter is based on code by VCV Rack link::https://github.com/VCVRack/Befaco/tree/v2/src::.
+
+
+classmethods::
+
+method::ar, kr
+
+ARGUMENT:: algo
+choose from 18 noise algorithms, [0]: RadioOhNo,
+[1]: RwalkSineFMFlange,
+[2]: XmodRingSine,
+[3]: CrossModRing,
+[4]: ResoNoise,
+[5]: GrainGlitch2,
+[6]: GrainGlitch3,
+[7]: BasuraTotal,
+[8]: ExistenceIsPain,
+[9]: WhoKnows,
+[10]: SatansWorkout,
+[11]: RwalkBitCrushPW,
+[12]: ClusterSaw,
+[13]: TriFMcluster,
+[14]: FibonacciCluster,
+[15]: PwCluster,
+[16]: Atari,
+[17]: S_H
+
+
+ARGUMENT:: x
+parameter x (0..1), changes depending on algorithm
+
+ARGUMENT:: y
+parameter y (0..1), changes depending on algorithm
+
+ARGUMENT:: cf
+filter cutoff (0..1)
+
+ARGUMENT:: res
+filter resonance (0..1)
+
+ARGUMENT:: filtMode
+filter mode, 0: lowpass, 1: bandpass, 2: highpass
+
+
+
+EXAMPLES::
+
+code::
+{ NPleth.ar(0, 0.2, 0.3, 0.0, 0.2) * 0.5 }.plot(1)
+
+// CrossModRing
+{ NPleth.ar(3, cf: LFNoise1.kr([0.2,0.23]).range(0.3, 0.7)) * 0.5 }.play
+
+// GrainGlitch2+3
+{ NPleth.ar([5, 6], MouseX.kr(), MouseY.kr(), 0.8) * 0.3 }.play
+
+// SatansWorkout
+{ NPleth.ar(10, MouseX.kr(), MouseY.kr(), [0.83, 0.82]) * 0.4 }.play
+
+// ClusterSaw
+{ NPleth.ar(12, MouseX.kr(), MouseY.kr(), [0.83, 0.82]) * 0.3 }.play
+
+// ResoNoise
+{ NPleth.ar(4, MouseX.kr(), MouseY.kr(), [0.83, 0.82]) * 0.3 }.play
+
+
+// test the algos
+(
+{
+	var algo = MouseX.kr(0, 17);
+	var cutoff = MouseY.kr(0.3, 0.9);
+	NPleth.ar(algo, cf: cutoff) * 0.3 !2
+}.play
+)
+
+
+(
+{
+	var algo = LFNoise0.kr(0.3).range(0, 17);
+	var x = MouseX.kr(0,1);
+    var y = MouseY.kr(0,1);
+	var filt = LFNoise1.kr(0.1).range(0.1, 0.9);
+    var res = 0.2;
+	var out = NPleth.ar(algo, [x, 1-x], [y, 1-y], filt, res, 1) * 0.4;
+	out;
+}.play;
+)
+
+// used as a modulator
+(
+{
+	SinOsc.ar(NPleth.kr(0, 0.2, 0.3, 0.01, 0.2).range(36,84).midicps, 0, 0.2)
+}.play
+)
+::
