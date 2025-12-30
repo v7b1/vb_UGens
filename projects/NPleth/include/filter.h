@@ -59,7 +59,7 @@ public:
     }
 
     void setParameters(float fc, float q) {
-        float rootQ = std::sqrtf(q);
+        float rootQ = std::sqrt(q);
         stage1.setParameters(fc, rootQ);
         stage2.setParameters(fc, rootQ);
     }
@@ -173,7 +173,7 @@ private:
     float satur(float x)
     {
         float x1 = (x + 1.0f) * 0.5f;
-        return offset + x1 - std::sqrtf(x1 * x1 - y1 * x) / y1;
+        return offset + x1 - std::sqrt(x1 * x1 - y1 * x) / y1;
     }
 
     const float y1 = 0.96886f;
