@@ -35,6 +35,7 @@
 
 #include "SC_PlugIn.h"
 #include <cstdio>
+#include <cmath>
 
 #include "audio_core.hpp"
 
