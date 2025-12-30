@@ -72,5 +72,3 @@ private:
     audio_block_t   audio_block[2];
 
 };
-
-//REGISTER_PLUGIN(XmodRingSine);

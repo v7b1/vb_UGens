@@ -70,4 +70,3 @@ private:
 
 };
 
-//REGISTER_PLUGIN(SatansWorkout);

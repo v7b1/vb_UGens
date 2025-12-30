@@ -158,4 +158,3 @@ private:
 
 };
 
-//REGISTER_PLUGIN(RwalkSineFMFlange);

@@ -20,7 +20,6 @@ public:
     ResoNoise(const ResoNoise&) = delete;
     ResoNoise& operator=(const ResoNoise&) = delete;
 
-//	virtual void init(int16_t *mem, uint16_t &refcount)
     virtual void init(int16_t *mem)
     {
         waveformMod.begin(1.0f, 500.0f, WAVEFORM_SQUARE);
@@ -101,5 +100,3 @@ private:
 
 
 };
-
-//REGISTER_PLUGIN(ResoNoise);
