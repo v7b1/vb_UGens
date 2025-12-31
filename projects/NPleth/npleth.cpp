@@ -35,6 +35,7 @@
 
 #include "SC_PlugIn.h"
 #include <cstdio>
+#define _USE_MATH_DEFINES
 #include <cmath>
 
 #include "audio_core.hpp"

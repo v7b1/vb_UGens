@@ -37,7 +37,11 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/projects/vbPVoc)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/projects/vbUtils)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/projects/RCD)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/projects/SCM)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/projects/NPleth)
+if (NOT MSVC) 
+  # Npleth currently doesn't compile on windows
+  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/projects/NPleth)
+endif()
+
 
 
 
