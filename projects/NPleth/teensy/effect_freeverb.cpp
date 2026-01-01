@@ -71,7 +71,7 @@ AudioEffectFreeverb::AudioEffectFreeverb() : AudioStream(1) {
 
 
 // cleaner sat16 by http://www.moseleyinstruments.com/
-__attribute__((unused))
+//__attribute__((unused))
 static int16_t sat16(int32_t n, int rshift) {
 	// we should always round towards 0
 	// to avoid recirculating round-off noise

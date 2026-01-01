@@ -62,7 +62,7 @@
 
 #include "filter.h"
 
-#define CLAMP(a, lo, hi) ( (a)>(lo)?( (a)<(hi)?(a):(hi) ):(lo) )
+//#define CLAMP(a, lo, hi) ( (a)>(lo)?( (a)<(hi)?(a):(hi) ):(lo) )
 
 
 #define AUDIO_BLOCK_SAMPLES 128
@@ -227,14 +227,14 @@ void NPleth_next(NPleth *unit, int inNumSamples)
     
     
     
-    // clipping / clamping
+    // clipping / std::clamping
     // all params should be between 0..1
-    knob_1 = CLAMP(knob_1, 0.0f, 1.0f);
-    knob_2 = CLAMP(knob_2, 0.0f, 1.0f);
-    cf = CLAMP(cf, 0.0f, 1.0f);
-    res = CLAMP(res, 0.0f, 1.0f);
+    knob_1 = std::clamp(knob_1, 0.0f, 1.0f);
+    knob_2 = std::clamp(knob_2, 0.0f, 1.0f);
+    cf = std::clamp(cf, 0.0f, 1.0f);
+    res = std::clamp(res, 0.0f, 1.0f);
     
-    filter_mode = static_cast<FilterMode>CLAMP(filter_mode, 0, 2);
+    filter_mode = static_cast<FilterMode>(std::clamp(static_cast<int>(filter_mode), 0, 2));
     
     
     if (cf != unit->prev_cf || res != unit->prev_res)
@@ -266,7 +266,7 @@ void NPleth_next(NPleth *unit, int inNumSamples)
         // TODO: check if we want this!
 //        if (fb3 != 0.0f) {
 //            // set filter
-//            cf = CLAMP(cf + fb3*prev_output, 0.0f, 1.0f);
+//            cf = std::clamp(cf + fb3*prev_output, 0.0f, 1.0f);
 //            double fc = calc_cf(cf) * self->r_sr; // normalized cutoff freq
 //            double q = res * res * 10. + 0.707107;
 //            svf2->setParameters(fc, q);
@@ -286,8 +286,8 @@ void NPleth_next(NPleth *unit, int inNumSamples)
             }
             
             // add feedback
-//            knob_1 = CLAMP(knob_1 + fb1*prev_output, 0.0f, 1.0f);
-//            knob_2 = CLAMP(knob_2 + fb2*prev_output, 0.0f, 1.0f);
+//            knob_1 = std::clamp(knob_1 + fb1*prev_output, 0.0f, 1.0f);
+//            knob_2 = std::clamp(knob_2 + fb2*prev_output, 0.0f, 1.0f);
             
             unit->generator_[my_generator]->process(knob_1, knob_2, ab);
             
@@ -309,8 +309,8 @@ void NPleth_next(NPleth *unit, int inNumSamples)
         for (int k=0; k<vs; k+=AUDIO_BLOCK_SAMPLES)
         {
             // add feedback
-//            knob_1 = CLAMP(knob_1 + fb1*prev_output, 0.0f, 1.0f);
-//            knob_2 = CLAMP(knob_2 + fb2*prev_output, 0.0f, 1.0f);
+//            knob_1 = std::clamp(knob_1 + fb1*prev_output, 0.0f, 1.0f);
+//            knob_2 = std::clamp(knob_2 + fb2*prev_output, 0.0f, 1.0f);
             
             unit->generator_[my_generator]->process(knob_1, knob_2, ab);
             
@@ -326,7 +326,7 @@ void NPleth_next(NPleth *unit, int inNumSamples)
             prev_output = out[k];
             
 //            if (fb3 != 0.0f) {
-//                cf = CLAMP(cf + fb3*prev_output, 0.0f, 1.0f);
+//                cf = std::clamp(cf + fb3*prev_output, 0.0f, 1.0f);
 //                float fc = calc_cf(cf) * unit->r_sr; // normalized cutoff freq
 //                float q = res * res * 10.0f + 0.707107f;
 //                svf2->setParameters(fc, q);

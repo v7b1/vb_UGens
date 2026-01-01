@@ -8,13 +8,13 @@ if (APPLE)
     endif()
 endif()
 
-if (NOT MSVC)
+#if (NOT MSVC)
   # specify the C++ standard
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17" CACHE STRING "c++ version" FORCE)
   if(CMAKE_COMPILER_IS_CLANG)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
   endif()
-endif()
+#endif()
 
 
 # set installation directory
@@ -37,10 +37,8 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/projects/vbPVoc)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/projects/vbUtils)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/projects/RCD)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/projects/SCM)
-if (NOT MSVC) 
-  # Npleth currently doesn't compile on windows
-  add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/projects/NPleth)
-endif()
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/projects/NPleth)
+
 
 
 
