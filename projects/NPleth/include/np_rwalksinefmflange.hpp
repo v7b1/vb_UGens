@@ -1,3 +1,8 @@
+// Noise Plethora Plugins
+// Copyright (c) 2021 Befaco / Jeremy Bernstein
+// Open-source software
+// Licensed under GPL-3.0-or-later
+
 #pragma once
 
 #include "synth_waveform.hpp"
@@ -21,10 +26,14 @@ public:
     RwalkSineFMFlange(const RwalkSineFMFlange&) = delete;
     RwalkSineFMFlange& operator=(const RwalkSineFMFlange&) = delete;
 
-//	virtual void init(int16_t *mem, uint16_t &refcount)
+
     virtual void init(int16_t *mem)
     {
         uint16_t refcount = 0;
+        
+        mixer.gain(0, 1.0f);
+        mixer.gain(2, 1.0f);
+        
         
         for (int i=0; i<4; i++) {
             waveform_block[i].data = mem+(refcount*AUDIO_BLOCK_SAMPLES);
@@ -38,11 +47,9 @@ public:
             
             // init
             sine_fm[i].amplitude(1.0f);
-            waveform[i].pulseWidth(0.2f);
             
             waveform[i].begin(1.0f, 333, WAVEFORM_PULSE);
-            
-            mixer.gain(i, 1.0f);
+            waveform[i].pulseWidth(0.2f);
             
             // random walk initial conditions
             // positions: random in [0,L] x [0, L]
@@ -62,22 +69,9 @@ public:
     
     virtual void reset()
     {
-//        for (int i=0; i<4; i++) {
-//            waveform_block[i].zeroAudioBlock();
-//            sinefm_block[i].zeroAudioBlock();
-//        }
-//
-//        mixer_block.zeroAudioBlock();
+
         
     }
-    
-    
-    // return random floats from 0.0 .. 1.0
-    float get_rand()
-    {
-        return (float)uint_dist(rng) / UINT32_MAX;
-    }
-    
     
 
     virtual void process(float k1, float k2, audio_block_t *out_block)
@@ -157,4 +151,3 @@ private:
     const float kV_0 = 30.0f;
 
 };
-

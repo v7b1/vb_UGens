@@ -1,4 +1,9 @@
+// Noise Plethora Plugins
+// Copyright (c) 2021 Befaco / Jeremy Bernstein
+// Open-source software
+// Licensed under GPL-3.0-or-later
 
+#pragma once
 
 
 #include "synth_waveform.hpp"

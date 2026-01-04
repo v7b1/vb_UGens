@@ -7,30 +7,13 @@
  
  **/
 
+// Noise Plethora Plugins
+// Copyright (c) 2021 Befaco / Jeremy Bernstein
+// Open-source software
+// Licensed under GPL-3.0-or-later
+
 /* Audio Library for Teensy 3.X
- * Copyright (c) 2014, Paul Stoffregen, paul@pjrc.com
- *
- * Development of this audio library was funded by PJRC.COM, LLC by sales of
- * Teensy and Audio Adaptor boards.  Please support PJRC's efforts to develop
- * open source software by purchasing Teensy or other PJRC products.
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice, development funding notice, and this permission
- * notice shall be included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * Copyright (c) 2014, Paul Stoffregen
  */
 
 #include "SC_PlugIn.h"
@@ -57,6 +40,7 @@
 #include "np_trifmcluster.hpp"
 #include "np_fibonaccicluster.hpp"
 #include "np_pwcluster.hpp"
+#include "np_partialcluster.hpp"
 #include "np_atari.hpp"
 #include "np_s_h.hpp"
 
@@ -68,7 +52,7 @@
 #define AUDIO_BLOCK_SAMPLES 128
 #define AMP_SCALE (1.0f / (1 << 15))
 
-#define MAX_GENERATORS 18
+#define MAX_GENERATORS 19
 
 
 static InterfaceTable *ft;
@@ -130,9 +114,10 @@ static void NPleth_Ctor(NPleth *unit)
     unit->generator_[12] = new ClusterSaw;
     unit->generator_[13] = new TriFMcluster;
     unit->generator_[14] = new FibonacciCluster;
-    unit->generator_[15] = new PwCluster;
-    unit->generator_[16] = new Atari;
-    unit->generator_[17] = new S_H;
+    unit->generator_[15] = new PartialCluster;
+    unit->generator_[16] = new PwCluster;
+    unit->generator_[17] = new Atari;
+    unit->generator_[18] = new S_H;
     
     
     for (int i=0; i<MAX_GENERATORS; i++) {

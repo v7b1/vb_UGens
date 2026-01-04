@@ -1,4 +1,9 @@
+// Noise Plethora Plugins
+// Copyright (c) 2021 Befaco / Jeremy Bernstein
+// Open-source software
+// Licensed under GPL-3.0-or-later
 
+#pragma once
 
 
 #include "synth_waveform.hpp"
@@ -33,6 +38,11 @@ public:
         for (int i=0; i<6; i++) {
             modulator[i].begin(1.0f, 1000.0f, WAVEFORM_SINE);
             waveformMod[i].begin(0.25f, 794.0f, WAVEFORM_TRIANGLE);
+            
+            // clear mem
+//            mod_block[i].data = mem+(refcount*AUDIO_BLOCK_SAMPLES);
+//            refcount++;
+//            mod_block[i].zeroAudioBlock();
             
             waveform_block[i].data = mem+(refcount*AUDIO_BLOCK_SAMPLES);
             waveform_block[i].zeroAudioBlock();
@@ -86,8 +96,8 @@ public:
 
        }
 
-        // sum up
-        mixer[0].update(&waveform_block[0], &waveform_block[1], &waveform_block[2], &waveform_block[3], &mixer_block[0]);
+       // sum up
+       mixer[0].update(&waveform_block[0], &waveform_block[1], &waveform_block[2], &waveform_block[3], &mixer_block[0]);
         mixer[1].update(&waveform_block[4], &waveform_block[5], nullptr, nullptr, &mixer_block[1]);
         mixer[2].update(&mixer_block[0], &mixer_block[1], nullptr, nullptr, out_block);
     }

@@ -1,4 +1,9 @@
+// Noise Plethora Plugins
+// Copyright (c) 2021 Befaco / Jeremy Bernstein
+// Open-source software
+// Licensed under GPL-3.0-or-later
 
+#pragma once
 
 
 #include "synth_waveform.hpp"
@@ -23,11 +28,17 @@ public:
     virtual void init(int16_t *mem)
     {
         uint16_t refcount = 0;
+        
+        waveformMod[0].begin(1.0f, 21.0f, WAVEFORM_TRIANGLE);
+        waveformMod[1].begin(1.0f, 70.0f, WAVEFORM_TRIANGLE);
+        waveformMod[2].begin(1.0f, 90.0f, WAVEFORM_TRIANGLE);
+        waveformMod[3].begin(1.0f, 77.0f, WAVEFORM_TRIANGLE);
+        
+        
         waveform.begin(1.0f, 5.0f, WAVEFORM_PULSE);
-        waveform.pulseWidth(0.25f);
+        waveform.pulseWidth(0.1f);
         
         for (int i=0; i<4; i++) {
-            waveformMod[i].begin(1.0f, 21.0f, WAVEFORM_TRIANGLE);
             filter[i].frequency(1000.0f);
             filter[i].resonance(7);
             filter[i].octaveControl(7);
@@ -35,35 +46,28 @@ public:
         }
         
         // clear memory
-        wform_block.data = mem+(refcount*AUDIO_BLOCK_SAMPLES);
-        refcount++;
-        wform_block.zeroAudioBlock();
-        dummy_block.data = mem+(refcount*AUDIO_BLOCK_SAMPLES);
-        refcount++;
-        dummy_block.zeroAudioBlock();
-        
         waveform_block.data = mem+(refcount*AUDIO_BLOCK_SAMPLES);
         refcount++;
         waveform_block.zeroAudioBlock();
+        dummy_block.data = mem+(refcount*AUDIO_BLOCK_SAMPLES);
+        refcount++;
+        dummy_block.zeroAudioBlock();
         
         for (int i=0; i<4; i++) {
             filter_block[i].data = mem+(refcount * AUDIO_BLOCK_SAMPLES);
             refcount++;
             filter_block[i].zeroAudioBlock();
+            
+            mod_block[i].data = mem+(refcount*AUDIO_BLOCK_SAMPLES);
+            refcount++;
+            mod_block[i].zeroAudioBlock();
         }
         
     }
     
     virtual void reset()
     {
-        // clear memory
-//        wform_block.zeroAudioBlock();
-//        dummy_block.zeroAudioBlock();
-//        waveform_block.zeroAudioBlock();
-//        
-//        for (int i=0; i<4; i++) {
-//            filter_block[i].zeroAudioBlock();
-//        }
+
     }
     
     
@@ -76,18 +80,18 @@ public:
        
 
         // waveform to filter
-        waveform.update(&wform_block);
+        waveform.update(&waveform_block);
         
         
        for (int i=0; i<4; i++)
        {
            filter[i].octaveControl(octaves);
 
-           waveformMod[i].update(nullptr, nullptr, &waveform_block);
+           waveformMod[i].update(nullptr, nullptr, &mod_block[i]);
 
            // SVF needs LP, BP and HP (even if we only use one)
            // let's use the same audio_block for LP and HP outputs. we don't need them anyway
-           filter[i].update(&wform_block, &waveform_block, &dummy_block, &filter_block[i], &dummy_block);
+           filter[i].update(&waveform_block, &mod_block[i], &dummy_block, &filter_block[i], &dummy_block);
 
        }
 
@@ -105,6 +109,7 @@ private:
 
     audio_block_t   waveform_block;
     audio_block_t   filter_block[4];
-    audio_block_t   wform_block, dummy_block;
+    audio_block_t   mod_block[4];
+    audio_block_t   dummy_block;
 };
 

@@ -1,5 +1,3 @@
-
-
 enum FilterMode {
     LOWPASS,
     BANDPASS,
@@ -14,20 +12,20 @@ class StateVariableFilter2ndOrder {
 public:
 
     StateVariableFilter2ndOrder() {
-        setParameters(0.01f, M_SQRT1_2);
+        setParameters(0.0, M_SQRT1_2);
     }
 
-    void setParameters(float fc, float q) {
+    void setParameters(double fc, double q) {
         
         const double g = std::tan(M_PI * fc);
-        const double R = 1.0f / (2.0f * q);
+        const double R = 1.0 / (2.0 * q);
 
-        alpha0 = 1.0f / (1.0f + 2.0f * R * g + g * g);
+        alpha0 = 1.0 / (1.0 + 2.0 * R * g + g * g);
         alpha = g;
-        rho = 2.0f * R + g;
+        rho = 2.0 * R + g;
     }
 
-    void process(float input) {
+    void process(double input) {
         hp = (input - rho * s1 - s2) * alpha0;
         bp = alpha * hp + s1;
         lp = alpha * bp + s2;
@@ -35,18 +33,18 @@ public:
         s2 = alpha * bp + lp;
     }
 
-    float output(FilterMode mode) {
+    double output(FilterMode mode) {
         switch (mode) {
             case LOWPASS: return lp;
             case BANDPASS: return bp;
             case HIGHPASS: return hp;
-            default: return 0.0f;
+            default: return 0.0;
         }
     }
 
 private:
-    float alpha, alpha0, rho;
-    float hp = 0.0f, bp = 0.0f, lp = 0.0f, s1 = 0.0f, s2 = 0.0f;
+    double alpha, alpha0, rho;
+    double hp = 0.0, bp = 0.0, lp = 0.0, s1 = 0.0, s2 = 0.0;
 };
 
 
@@ -58,18 +56,18 @@ public:
 
     }
 
-    void setParameters(float fc, float q) {
-        float rootQ = std::sqrt(q);
+    void setParameters(double fc, double q) {
+        double rootQ = std::sqrt(q);
         stage1.setParameters(fc, rootQ);
         stage2.setParameters(fc, rootQ);
     }
 
-    float process(float input, FilterMode mode) {
+    double process(double input, FilterMode mode) {
         stage1.process(input);
-        float s1 = stage1.output(mode);
+        double s1 = stage1.output(mode);
 
         stage2.process(s1);
-        float s2 = stage2.output(mode);
+        double s2 = stage2.output(mode);
 
         return s2;
     }
@@ -84,18 +82,13 @@ private:
 class Biquad
 {
 public:
-    Biquad() {
-        reset();
-        setParams(0.001, 1.0);
-    }
-    
     void reset() {
-        xm1 = xm2 = ym1 = ym2 = 0.0f;
+        xm1 = xm2 = ym1 = ym2 = 0.0;
     }
     
     void setParams(double cf, double Q)
     {
-        const double K = std::tan(M_PI * cf);
+        double K = std::tan(M_PI * cf);
         
         // highpass
         double norm = 1.0 / (1.0 + K / Q + K * K);
@@ -107,9 +100,9 @@ public:
         
     }
     
-    float process(float input)
+    double process(double input)
     {
-        float y = a0 * input + a1 * xm1 + a2 * xm2 - b1 * ym1 - b2 * ym2;
+        double y = a0 * input + a1 * xm1 + a2 * xm2 - b1 * ym1 - b2 * ym2;
         ym2 = ym1;
         ym1 = y;
         xm2 = xm1;
@@ -119,8 +112,16 @@ public:
     
     
 private:
-    float a0, a1, a2, b1, b2;
-    float xm1, xm2, ym1, ym2;
+    double a0 = 1.0;
+    double a1 = 0.0;
+    double a2 = 0.0;
+    double b1 = 0.0;
+    double b2 = 0.0;
+    
+    double xm1 = 0.0;
+    double xm2 = 0.0;
+    double ym1 = 0.0;
+    double ym2 = 0.0;
     
 };
 
@@ -130,24 +131,23 @@ private:
 class DCBlocker
 {
 public:
-    DCBlocker() {}
-    
-    void init(float sr)
+    void init(double sr)
     {
-        const double fc = 22.05 / sr;
+        fc = 22.05 / sr;
         
-        const double poleInc = M_PI / 4.0;
-        const double firstAngle = poleInc / 2.0;
-        float q1 = 1.0 / (2.0 * cos(firstAngle));
-        float q2 = 1.0 / (2.0 * cos(firstAngle+poleInc));
+        double poleInc = M_PI / 4;
+        double firstAngle = poleInc / 2;
+        double q1 = 1.0 / (2 * cos(firstAngle));
+        double q2 = 1.0 / (2 * cos(firstAngle+poleInc));
         
         b1.setParams(fc, q1);
         b2.setParams(fc, q2);
+        
     }
     
-    float process(float input)
+    double process(double input)
     {
-        float m = b1.process(input);
+        double m = b1.process(input);
         return b2.process(m);
     }
     
@@ -156,27 +156,62 @@ private:
     
     Biquad b1;
     Biquad b2;
+    double fc = 0.001;
+    
     
 };
+
+
+class DCBlockerSimple
+{
+public:
+    void init(double c)
+    {
+        if (c < 0.0) coef = 0.0;
+        else if (c > 1.0) coef = 1.0;
+        else coef = c;
+        
+        a0 = (1.0 + coef) * 0.5;
+        a1 = -a0;
+        
+    }
+    
+    double process(double input)
+    {
+        double output = input * a0 + xm1 * a1 + ym1 * coef;
+        ym1 = output;
+        xm1 = input;
+        return output;
+    }
+    
+private:
+    double coef = 0.999;
+    double a0, a1;
+    double xm1, ym1;
+    
+};
+
 
 
 class Saturator {
     
 public:
-    float process(float input)
+    double process(double input)
     {
-        return input < 0.0f ? -satur(-input) : satur(input);
+        return input < 0.0 ? -satur(-input) : satur(input);
     }
     
 private:
     
-    float satur(float x)
+    double satur(double x)
     {
-        float x1 = (x + 1.0f) * 0.5f;
-        return offset + x1 - std::sqrt(x1 * x1 - y1 * x) / y1;
+        x /= limit;
+        double x1 = (x + 1.0) * 0.5;
+        return limit * (offset + x1 - sqrt(x1 * x1 - y1 * x) / y1);
     }
-
-    const float y1 = 0.96886f;
-    const float offset = 0.016071f;
+    
+    const double limit = 1.05;
+    const double y1 = 0.96886;
+    const double offset = 0.016071;
     
 };

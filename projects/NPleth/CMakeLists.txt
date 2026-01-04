@@ -42,6 +42,8 @@ set(TEENSY_SOURCES
     	${TEENSY_PATH}/effect_freeverb.cpp
 	${TEENSY_PATH}/effect_granular.cpp
     	${TEENSY_PATH}/effect_granular.hpp
+	${TEENSY_PATH}/effect_combine.hpp
+	${TEENSY_PATH}/effect_combine.cpp
 )
 
 set(HEADERS
@@ -61,8 +63,12 @@ set(HEADERS
 	${HEADER_PATH}/np_trifmcluster.hpp
 	${HEADER_PATH}/np_fibonaccicluster.hpp
 	${HEADER_PATH}/np_pwcluster.hpp
+	${HEADER_PATH}/np_partialcluster.hpp
 	${HEADER_PATH}/np_atari.hpp
 	${HEADER_PATH}/np_s_h.hpp
+	${HEADER_PATH}/np_crCluster2.hpp
+	${HEADER_PATH}/np_arrayOnTheRocks.hpp
+	${HEADER_PATH}/np_grainglitch.hpp
 	${HEADER_PATH}/generator.h
 	${HEADER_PATH}/filter.h
 )

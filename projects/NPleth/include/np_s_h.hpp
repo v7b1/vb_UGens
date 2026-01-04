@@ -1,3 +1,8 @@
+// Noise Plethora Plugins
+// Copyright (c) 2021 Befaco / Jeremy Bernstein
+// Open-source software
+// Licensed under GPL-3.0-or-later
+
 #pragma once
 
 
@@ -47,11 +52,9 @@ public:
 
     virtual void process(float k1, float k2, audio_block_t *out_block)
     {
-        waveformMod.frequency(15 + (k1 * 6000.0f));
+        waveformMod.frequency(5000.0f * k1 + 15.0f);
         mixer.gain(0, 1.0f - k2);
         mixer.gain(1, k2 * 4.0f);
-        
-        freeverb.roomsize(0.001f + k2 * 4.0f);
         
         
         waveformMod.update(nullptr, nullptr, &audio_block[0]);

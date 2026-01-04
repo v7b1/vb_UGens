@@ -21,7 +21,7 @@ public:
     RwalkBitCrushPW(const RwalkBitCrushPW&) = delete;
     RwalkBitCrushPW& operator=(const RwalkBitCrushPW&) = delete;
 
-//	virtual void init(int16_t *mem, uint16_t &refcount)
+
     virtual void init(int16_t *mem)
     {
         uint16_t refcount = 0;
@@ -89,7 +89,8 @@ public:
     {
 
         float dL = kL + 100.0f;
-        float bc_01 = k1 * 0.73f + 0.2f;
+        // (knob_1 - 0) * (0.75 - 0.2) / (1 - 0) + 0.2;
+        float bc_01 = k1 * 0.55f + 0.2f;
         float fv = k2;
         
         bitcrusher.bits(1);
@@ -170,3 +171,4 @@ private:
 
 };
 
+//REGISTER_PLUGIN(RwalkBitCrushPW);

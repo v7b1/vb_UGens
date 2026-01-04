@@ -1,3 +1,8 @@
+// Noise Plethora Plugins
+// Copyright (c) 2021 Befaco / Jeremy Bernstein
+// Open-source software
+// Licensed under GPL-3.0-or-later
+
 #pragma once
 
 
@@ -72,3 +77,5 @@ private:
     audio_block_t   audio_block[2];
 
 };
+
+//REGISTER_PLUGIN(XmodRingSine);
