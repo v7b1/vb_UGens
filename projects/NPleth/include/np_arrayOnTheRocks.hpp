@@ -22,7 +22,6 @@ public:
 
     virtual void init(int16_t *mem)
     {
-        printf("test: %d\n", test);
         //noise1.amplitude(1);
 
         waveformMod.arbitraryWaveform(myWaveform, 172.0);

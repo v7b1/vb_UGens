@@ -32,6 +32,7 @@
 #include "np_rwalkbitcrushpw.hpp"
 #include "np_rwalksinefmflange.hpp"
 #include "np_satansworkout.hpp"
+#include "np_grainglitch.hpp"
 #include "np_grainglitch2.hpp"
 #include "np_grainglitch3.hpp"
 #include "np_existenceispain.hpp"
@@ -41,8 +42,10 @@
 #include "np_fibonaccicluster.hpp"
 #include "np_pwcluster.hpp"
 #include "np_partialcluster.hpp"
+#include "np_crCluster2.hpp"
 #include "np_atari.hpp"
 #include "np_s_h.hpp"
+#include "np_arrayOnTheRocks.hpp"
 
 #include "filter.h"
 
@@ -52,7 +55,7 @@
 #define AUDIO_BLOCK_SAMPLES 128
 #define AMP_SCALE (1.0f / (1 << 15))
 
-#define MAX_GENERATORS 19
+#define MAX_GENERATORS 22
 
 
 static InterfaceTable *ft;
@@ -73,7 +76,7 @@ struct NPleth : public Unit
     float          prev_cf;
     float          prev_res;
     
-    DCBlocker       *blocker;
+    DCBlockerSimple   *blocker;
     Saturator       *satur;
 //    FilterMode      filter_mode;
     
@@ -95,29 +98,57 @@ static void NPleth_Ctor(NPleth *unit)
     unit->r_sr = 1.0 / SAMPLERATE;
     
     // mem alloc
-    unit->mem_pool = (int16_t *)calloc(30 * AUDIO_BLOCK_SAMPLES, sizeof(int16_t));
+    unit->mem_pool = (int16_t *)calloc(40 * AUDIO_BLOCK_SAMPLES, sizeof(int16_t));
     unit->ab.data = (int16_t *)calloc(AUDIO_BLOCK_SAMPLES, sizeof(int16_t));
 
     
+//    unit->generator_[0] = new RadioOhNo;
+//    unit->generator_[1] = new RwalkSineFMFlange;
+//    unit->generator_[2] = new XmodRingSine;
+//    unit->generator_[3] = new CrossModRing;
+//    unit->generator_[4] = new ResoNoise;
+//    unit->generator_[5] = new GrainGlitch2;
+//    unit->generator_[6] = new GrainGlitch3;
+//    unit->generator_[7] = new BasuraTotal;
+//    unit->generator_[8] = new ExistenceIsPain;
+//    unit->generator_[9] = new WhoKnows;
+//    unit->generator_[10] = new SatansWorkout;
+//    unit->generator_[11] = new RwalkBitCrushPW;
+//    unit->generator_[12] = new ClusterSaw;
+//    unit->generator_[13] = new TriFMcluster;
+//    unit->generator_[14] = new FibonacciCluster;
+//    unit->generator_[15] = new PartialCluster;
+//    unit->generator_[16] = new PwCluster;
+//    unit->generator_[17] = new Atari;
+//    unit->generator_[18] = new S_H;
+    
+    // bank: A - textures
     unit->generator_[0] = new RadioOhNo;
     unit->generator_[1] = new RwalkSineFMFlange;
     unit->generator_[2] = new XmodRingSine;
     unit->generator_[3] = new CrossModRing;
     unit->generator_[4] = new ResoNoise;
-    unit->generator_[5] = new GrainGlitch2;
-    unit->generator_[6] = new GrainGlitch3;
-    unit->generator_[7] = new BasuraTotal;
-    unit->generator_[8] = new ExistenceIsPain;
-    unit->generator_[9] = new WhoKnows;
-    unit->generator_[10] = new SatansWorkout;
-    unit->generator_[11] = new RwalkBitCrushPW;
-    unit->generator_[12] = new ClusterSaw;
-    unit->generator_[13] = new TriFMcluster;
-    unit->generator_[14] = new FibonacciCluster;
-    unit->generator_[15] = new PartialCluster;
-    unit->generator_[16] = new PwCluster;
-    unit->generator_[17] = new Atari;
-    unit->generator_[18] = new S_H;
+    unit->generator_[5] = new GrainGlitch;
+    unit->generator_[6] = new GrainGlitch2;
+    unit->generator_[7] = new GrainGlitch3;
+    
+    // bank: B - hh clusters
+    unit->generator_[8] = new ClusterSaw;
+    unit->generator_[9] = new PwCluster;
+    unit->generator_[10] = new CrCluster2;
+    unit->generator_[11] = new TriFMcluster;
+    unit->generator_[12] = new FibonacciCluster;
+    unit->generator_[13] = new PartialCluster;
+    
+    // bank: C - harsh & wild
+    unit->generator_[14] = new BasuraTotal;
+    unit->generator_[15] = new Atari;
+    unit->generator_[16] = new S_H;
+    unit->generator_[17] = new ArrayOnTheRocks;
+    unit->generator_[18] = new ExistenceIsPain;
+    unit->generator_[19] = new WhoKnows;
+    unit->generator_[20] = new SatansWorkout;
+    unit->generator_[21] = new RwalkBitCrushPW;
     
     
     for (int i=0; i<MAX_GENERATORS; i++) {
@@ -145,8 +176,9 @@ static void NPleth_Ctor(NPleth *unit)
     unit->svf2 = new StateVariableFilter2ndOrder;
     
     unit->satur = new Saturator;
-    unit->blocker = new DCBlocker;
+    unit->blocker = new DCBlockerSimple;
     unit->blocker->init(unit->sr);
+    unit->blocker->init(0.999);
 
     
     SETCALC(NPleth_next);
@@ -200,7 +232,7 @@ void NPleth_next(NPleth *unit, int inNumSamples)
     uint16_t count = unit->count;
     audio_block_t *ab = &unit->ab;
     StateVariableFilter2ndOrder *svf2 = unit->svf2;
-    DCBlocker *blocker = unit->blocker;
+    DCBlockerSimple *blocker = unit->blocker;
     Saturator *satur = unit->satur;
     
     float   fb1, fb2, fb3, prev_output;
@@ -252,7 +284,7 @@ void NPleth_next(NPleth *unit, int inNumSamples)
 //        if (fb3 != 0.0f) {
 //            // set filter
 //            cf = std::clamp(cf + fb3*prev_output, 0.0f, 1.0f);
-//            double fc = calc_cf(cf) * self->r_sr; // normalized cutoff freq
+//            double fc = calc_cf(cf) * unit->r_sr; // normalized cutoff freq
 //            double q = res * res * 10. + 0.707107;
 //            svf2->setParameters(fc, q);
 //        }

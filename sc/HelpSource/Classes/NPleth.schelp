@@ -16,24 +16,31 @@ classmethods::
 method::ar, kr
 
 ARGUMENT:: algo
-choose from 18 noise algorithms, [0]: RadioOhNo,
+choose from 22 noise algorithms, [0]: RadioOhNo,
 [1]: RwalkSineFMFlange,
 [2]: XmodRingSine,
 [3]: CrossModRing,
 [4]: ResoNoise,
-[5]: GrainGlitch2,
-[6]: GrainGlitch3,
-[7]: BasuraTotal,
-[8]: ExistenceIsPain,
-[9]: WhoKnows,
-[10]: SatansWorkout,
-[11]: RwalkBitCrushPW,
-[12]: ClusterSaw,
-[13]: TriFMcluster,
-[14]: FibonacciCluster,
-[15]: PwCluster,
-[16]: Atari,
-[17]: S_H
+[5]: GrainGlitch,
+[6]: GrainGlitch2,
+[7]: GrainGlitch3,
+[8]: ClusterSaw,
+[9]: PwCluster,
+[10]: CrCluster2,
+[11]: TriFMcluster,
+[12]: FibonacciCluster,
+[13]: PartialCluster,
+[14]: BasuraTotal,
+[15]: Atari,
+[16]: S_H,
+[17]: ArrayOnTheRocks,
+[18]: ExistenceIsPain,
+[19]: WhoKnows,
+[20]: SatansWorkout,
+[21]: RwalkBitCrushPW,
+
+
+
 
 
 ARGUMENT:: x
@@ -62,13 +69,13 @@ code::
 { NPleth.ar(3, cf: LFNoise1.kr([0.2,0.23]).range(0.3, 0.7)) * 0.5 }.play
 
 // GrainGlitch2+3
-{ NPleth.ar([5, 6], MouseX.kr(), MouseY.kr(), 0.8) * 0.3 }.play
+{ NPleth.ar([6, 7], MouseX.kr(), MouseY.kr(), 0.8) * 0.3 }.play
 
 // SatansWorkout
-{ NPleth.ar(10, MouseX.kr(), MouseY.kr(), [0.83, 0.82]) * 0.4 }.play
+{ NPleth.ar(20, MouseX.kr(), MouseY.kr(), [0.83, 0.82]) * 0.4 }.play
 
 // ClusterSaw
-{ NPleth.ar(12, MouseX.kr(), MouseY.kr(), [0.83, 0.82]) * 0.3 }.play
+{ NPleth.ar(8, MouseX.kr(), MouseY.kr(), [0.83, 0.82]) * 0.3 }.play
 
 // ResoNoise
 { NPleth.ar(4, MouseX.kr(), MouseY.kr(), [0.83, 0.82]) * 0.3 }.play
@@ -77,7 +84,7 @@ code::
 // test the algos
 (
 {
-	var algo = MouseX.kr(0, 17);
+	var algo = MouseX.kr(0, 21);
 	var cutoff = MouseY.kr(0.3, 0.9);
 	NPleth.ar(algo, cf: cutoff) * 0.3 !2
 }.play
@@ -86,7 +93,7 @@ code::
 
 (
 {
-	var algo = LFNoise0.kr(0.3).range(0, 17);
+	var algo = LFNoise0.kr(0.3).range(0, 21);
 	var x = MouseX.kr(0,1);
     var y = MouseY.kr(0,1);
 	var filt = LFNoise1.kr(0.1).range(0.1, 0.9);
