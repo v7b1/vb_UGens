@@ -6,6 +6,9 @@ project (${project_name})
 include_directories(${SC_PATH}/include/plugin_interface)
 include_directories(${SC_PATH}/include/common)
 
+if(MSVC)
+add_definitions(-D_USE_MATH_DEFINES) # defines M_PI with MSVC
+endif()
 
 set(CMAKE_SHARED_MODULE_PREFIX "")
 if(APPLE OR WIN32)
