@@ -12,7 +12,7 @@ jobs:
         os: [macos-latest, ubuntu-latest, windows-latest]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v6
     
     - name: Install 7Zip (Windows)
       if: matrix.os == 'windows-latest'
@@ -70,7 +70,7 @@ jobs:
       run: Compress-7Zip "vbUGens" -ArchiveFileName "vbUGens-${{runner.os}}.zip" -Format Zip
       
     - name: Check if release has been created
-      uses: mukunku/tag-exists-action@v1.0.0
+      uses: mukunku/tag-exists-action@v1.7.0
       id: checkTag
       with: 
         tag: 'v2'
