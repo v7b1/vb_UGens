@@ -337,20 +337,20 @@ static inline int32_t FRACMUL_SHL(int32_t x, int32_t y, int z) {
 #endif
 
 //get Q from PSR
-static inline uint32_t get_q_psr(void); // __attribute__((always_inline, unused));
-static inline uint32_t get_q_psr(void) {
-	uint32_t out;
-    asm("mrs %w0, APSR" : "=r"(out));
-	return (out & 0x8000000) >> 27;
-}
-
-//clear Q BIT in PSR
-static inline void clr_q_psr(void); // __attribute__((always_inline, unused));
-static inline void clr_q_psr(void) {
-	uint32_t t;
-    asm("mov %w[t],#0\n"
-        "msr APSR_nzcvq,%w0\n" : [t] "=&r"(t)::"cc");
-}
+//static inline uint32_t get_q_psr(void); // __attribute__((always_inline, unused));
+//static inline uint32_t get_q_psr(void) {
+//	uint32_t out;
+//    asm("mrs %w0, APSR" : "=r"(out));
+//	return (out & 0x8000000) >> 27;
+//}
+//
+////clear Q BIT in PSR
+//static inline void clr_q_psr(void); // __attribute__((always_inline, unused));
+//static inline void clr_q_psr(void) {
+//	uint32_t t;
+//    asm("mov %w[t],#0\n"
+//        "msr APSR_nzcvq,%w0\n" : [t] "=&r"(t)::"cc");
+//}
 
 
 #endif

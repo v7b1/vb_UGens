@@ -89,6 +89,14 @@ add_library(
 	${TEENSY_SOURCES}
 )
 
+if(MSVC)
+set_property (TARGET ${PROJECT_NAME}
+  PROPERTY
+    # Enable C++17 standard compliance
+    CXX_STANDARD 17
+)
+endif()
+
 # create groups in our project
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${HEADERS} ${TEENSY_SOURCES})
 

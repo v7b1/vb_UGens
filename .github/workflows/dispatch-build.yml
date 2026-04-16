@@ -61,14 +61,14 @@ jobs:
       if: matrix.os != 'windows-latest'
       shell: bash
       working-directory: ${{github.workspace}}/build
-      run: zip -r mi-UGens-${{runner.os}} mi-UGens
+      run: zip -r vbUGens-${{runner.os}} vbUGens
 
       # Gather all files in a zip
     - name: Zip up build (Windows)
       if: matrix.os == 'windows-latest'
       shell: pwsh
       working-directory: ${{github.workspace}}\build
-      run: Compress-7Zip "mi-UGens" -ArchiveFileName "mi-UGens-${{runner.os}}.zip" -Format Zip -PreserveDirectoryRoot
+      run: Compress-7Zip "vbUGens" -ArchiveFileName "vbUGens-${{runner.os}}.zip" -Format Zip -PreserveDirectoryRoot
 
     - name: Check if release has been created
       uses: mukunku/tag-exists-action@v1.7.0
@@ -87,7 +87,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
       with:
         tag_name: ${{ github.ref }}
-        release_name: mi-UGens-${{ github.ref }}
+        release_name: vbUGens-${{ github.ref }}
         draft: false
         prerelease: false
 
@@ -95,6 +95,6 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ${{github.workspace}}/build/mi-UGens-${{runner.os}}.zip
-        asset_name: mi-UGens-${{runner.os}}.zip
+        file: ${{github.workspace}}/build/vbUGens-${{runner.os}}.zip
+        asset_name: vbUGens-${{runner.os}}.zip
         tag: ${{ github.ref }}
