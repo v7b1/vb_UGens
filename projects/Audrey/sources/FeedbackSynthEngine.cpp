@@ -59,11 +59,8 @@ void Engine::SetStringPitch(const float nn) {
 }
 
 void Engine::SetStringFreq(const float freq) {
-//    if (detune_ != 0.f) {
-
         strings_[0].SetFreq(freq);
         strings_[1].SetFreq(freq);
-//    }
 }
 
 void Engine::SetFeedbackGain(const float gain_db) {

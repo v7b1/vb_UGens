@@ -30,7 +30,7 @@ struct Audrey : public Unit
 
     float   string_pitch;
     float   string_freq;
-    float   detune;
+//    float   detune;
     float   fb_gain;
     float   reverb_mix, reverb_mix_target;
     float   hpf_, lpf_;
@@ -61,14 +61,14 @@ static void Audrey_Ctor(Audrey *unit)
     unit->limiter[1].Init();
     
     unit->string_pitch = 40.f;
-    unit->detune = 0.f;
+//    unit->detune = 0.f;
     unit->hpf_ = 100.f;
     unit->lpf_ = 8000.f;
     unit->fb_gain = -18.0f;
     unit->reverb_mix_target = 0.1f;
     unit->drive_ = 0.4f;
     
-    unit->engine->SetOutputLevel(1.0f);
+    unit->engine->SetOutputLevel(0.5f);
     
     unit->engine->SetDamping(0.8);
     unit->engine->SetDecayRate(0.8);
@@ -80,9 +80,9 @@ static void Audrey_Ctor(Audrey *unit)
     unit->engine->SetEchoDelaySendAmount(0.5f);
     unit->engine->SetEchoDelayFeedback(0.8f);
     
-    // TODO: how do I find the current blocksize?
-    unit->silence = (float*)RTAlloc(unit->mWorld, 512*sizeof(float));
-    memset(unit->silence, 0, 512*sizeof(float));
+    // TODO: how do I find the current blocksize? --> BUFLENGTH ?
+    unit->silence = (float*)RTAlloc(unit->mWorld, BUFLENGTH*sizeof(float));
+    memset(unit->silence, 0, BUFLENGTH*sizeof(float));
     
     SETCALC(Audrey_next);
     
@@ -98,9 +98,6 @@ static void Audrey_Dtor(Audrey *unit)
 }
 
 
-void sayHello(float input) {
-    printf("hi from Audrey: %f\n", input);
-}
 
 void Audrey_next(Audrey *unit, int inNumSamples)
 {
@@ -114,6 +111,9 @@ void Audrey_next(Audrey *unit, int inNumSamples)
     float       reverb_mix_in = IN0(7);
     float       reverb_decay_in = IN0(8);
     float       drive_in = IN0(9);
+    float       echo_send = IN0(10);
+    float       echo_time = IN0(11);
+    float       echo_fb = IN0(12);
 
     float       *out1 = OUT(0);
     float       *out2 = OUT(1);
@@ -135,7 +135,7 @@ void Audrey_next(Audrey *unit, int inNumSamples)
     float reverb_mix = unit->reverb_mix;
     float hpf = unit->hpf_;
     float lpf = unit->lpf_;
-    float detune = unit->detune;
+//    float detune = unit->detune;
 //    float detune_target = unit->detune_target;
     
     
@@ -168,6 +168,11 @@ void Audrey_next(Audrey *unit, int inNumSamples)
     
     fonepole(reverb_mix, reverb_mix_target, interpol_coef * 0.2f);
     engine->SetReverbMix(reverb_mix);
+    
+    // echo --------------
+    engine->SetEchoDelaySendAmount(DSY_CLAMP(echo_send, 0.f, 1.f));
+    engine->SetEchoDelayTime(DSY_CLAMP(echo_time, 0.f, 1.f));
+    engine->SetEchoDelayFeedback(DSY_CLAMP(echo_fb, 0.f, 1.f));
     
     
     for (size_t i=0; i<vs; i+=BLOCKSIZE)
@@ -212,7 +217,7 @@ void Audrey_next(Audrey *unit, int inNumSamples)
     unit->reverb_mix = reverb_mix;
     unit->hpf_ = hpf;
     unit->lpf_ = lpf;
-    unit->detune = detune;
+//    unit->detune = detune;
 }
 
 
@@ -222,96 +227,4 @@ PluginLoad(Audrey)
     ft = inTable;
     DefineDtorUnit(Audrey);
 }
-
-
-
-
-//
-//void myObj_setDecay(t_myObj *unit, double f) {
-//    // set's decay rate of the strings
-//    // expects 0..1
-//    float decay = f * 0.5 + 0.5;
-//    unit->engine->SetDecayRate(decay);
-//}
-//
-//void myObj_setDetune(t_myObj *unit, double d) {
-//    unit->detune_target = DSY_CLAMP(d, -6.0, 6.0);
-////    unit->engine->SetDetune( DSY_CLAMP(d, -6.0, 6.0) );
-//}
-//
-//// feedback (body) controls
-//void myObj_fb_gain(t_myObj *unit, double f) {
-//    // expects 0..1
-//    // initial value: -60.0f, min: -60.0f, max: 12.0f,
-//    float gain = (f * 84.0) - 72.0;     // vb: make range a little larger
-//    gain = DSY_CLAMP(gain, -72., 12.);
-//    if (gain <= -72.0) gain = -120.0;
-//    unit->fb_gain_target = gain;
-//}
-//
-//void myObj_fb_delay(t_myObj *unit, double f) {
-//    // inivial: 0.001f, min: 0.001f, max: 0.1f
-//    f *= 0.25f;         // expects 0..1, scales to 0..0.25
-//    unit->engine->SetFeedbackDelay(f);
-//}
-//
-//
-//// filter stuff
-//void myObj_filter(t_myObj *unit, double hp, double lp) {
-//    // --> log mapping...
-//    // initial: 250.0f, 10.0f, 4000.0f,
-//    unit->hpf_target = fmap(hp, 10.0, 4000.0, Mapping::LOG);
-//
-//    // initial: 18000.0f, min: 100.0f, max: 18000.0f,
-////    unit->lpf_target = fmap(lp, 100.0, 18000.0, Mapping::LOG);
-//    unit->lpf_target = fmap(lp, 100.0f, unit->sr * 0.375f, Mapping::LOG);
-//
-//}
-//
-//
-//
-//// reverb stuff
-//void myObj_reverb(t_myObj *unit, double mix, double decay) {
-//
-//    float mixf = DSY_CLAMP(mix, 0., 1.);
-//    unit->reverb_mix_target = mixf * mixf;
-//
-//    // initial: 0.2f, min: 0.2f, max: 1.0f,
-//    float decayf = infrasonic::ftension(decay, -3.0f);
-//    decayf = fmap(decayf, 0.2f, 1.0f);
-//    unit->engine->SetReverbFeedback(decayf);
-//}
-//
-//void myObj_drive(t_myObj *unit, double drive) {
-//    float d = DSY_CLAMP(drive, 0.01, 0.999);
-//    unit->engine->SetDriveAmount(d);
-//}
-//
-//
-//// echo stuff
-//void myObj_echo(t_myObj *unit, double amount, double time, double fb) {
-//
-//    // initial: 0.0f, min: 0.0f, max: 1.0f, exponetial
-//    float a = fmap(amount, 0., 1.0, Mapping::EXP);
-//    unit->engine->SetEchoDelaySendAmount(a);
-//
-//    // initial: 0.5f, min: 0.05f, max: 5.0f
-//    unit->echo_time = fmap(time, 0.05, 5.0, Mapping::EXP);
-//    unit->engine->SetEchoDelayTime(unit->echo_time * unit->echo_scalar);
-//
-//    float fbf = fmap(fb, 0., 1.5);
-//    unit->engine->SetEchoDelayFeedback(fbf);
-//}
-//
-//void myObj_echo_scale(t_myObj *unit, long a) {
-//    if (a != 0) unit->echo_scalar = 1.0f;
-//    else unit->echo_scalar = 0.5f;
-//    unit->engine->SetEchoDelayTime(unit->echo_time * unit->echo_scalar);
-//}
-//
-//
-//void myObj_out_level(t_myObj *unit, double g) {
-//    float gain = DSY_CLAMP(g, 0.0, 1.0);
-//    unit->engine->SetOutputLevel(gain);
-//}
 
